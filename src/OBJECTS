@@ -1,0 +1,5 @@
+objects = \
+cmfd_header.o \
+cmfd_execute.o \
+global.o \
+main.o
