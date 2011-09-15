@@ -1,6 +1,6 @@
-globa.o: cmfd_header.o
+global.o: cmfd_header.o
 
 main.o: global.o
 main.o: cmfd_execute.o
 
-cmfd_execute: global.o 
+cmfd_execute.o: global.o 
