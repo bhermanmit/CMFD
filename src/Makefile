@@ -14,26 +14,10 @@ include ${PETSC_DIR}/conf/rules
 include OBJECTS
 
 #===============================================================================
-# User Options
-#===============================================================================
 
-DEBUG       = yes 
-
-#===============================================================================
-# Compiler Options
-#===============================================================================
-
-  F90FLAGS = -I${PETSC_DIR}/include/finclude -ffree-form
+# F90FLAGS = -I${PETSC_DIR}/include/finclude -I../lib/gfortran -ffree-form
+  F90FLAGS = -I../lib/gfortran -ffree-form
   LDFLAGS = -L../lib/gfortran -lxmlparse
-
-# Set compiler flags for debugging
-
-ifeq ($(DEBUG),yes)
-  F90FLAGS += -g 
-  LDFLAGS  += -g
-  F90FLAGS += -pedantic -std=f2008 -fbacktrace -fbounds-check \
-              -ffpe-trap=invalid,zero,overflow,underflow
-endif
 
 #===============================================================================
 # Targets
@@ -42,6 +26,16 @@ endif
 all:	$(program)
 $(program): $(objects) chkopts
 	${FLINKER} $(objects) -o $@ $(LDFLAGS) ${PETSC_SNES_LIB}
+
+#===============================================================================
+# Rules
+#===============================================================================
+
+.SUFFIXES: .f90 .o
+.PHONY: all clean neat
+
+%.o: %.f90
+	${FLINKER} $(F90FLAGS) -c $<
 
 #===============================================================================
 # Dependencies

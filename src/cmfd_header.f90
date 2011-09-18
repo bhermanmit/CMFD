@@ -15,7 +15,7 @@ module cmfd_header
     ! cross sections
     real, allocatable :: totalxs(:,:,:,:)
     real, allocatable :: scattxs(:,:,:,:,:)
-    real, allocatable :: fissxs(:,:,:,:,:)
+    real, allocatable :: nfissxs(:,:,:,:,:)
 
     ! currents
     real, allocatable :: currentX(:,:,:,:)
