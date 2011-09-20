@@ -30,7 +30,7 @@ module cmfd_header
     real(8)              :: albedo(6)
 
     ! dimensions of mesh cells (xloc,yloc,zloc,[hu,hv,hw])
-    real(8), allocatable :: h(:,:,:,:)
+    real(8), allocatable :: hxyz(:,:,:,:)
 
     ! source probability distribution
     real(8), allocatable :: sourcepdf(:,:,:,:)

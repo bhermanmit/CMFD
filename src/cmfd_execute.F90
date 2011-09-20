@@ -109,11 +109,11 @@ contains
     Vec         :: phi_o  ! old flux eigenvector
     Vec         :: S_n    ! new source vector
     Vec         :: S_o    ! old source vector
-    PetscScalar :: k_n    ! new k-eigenvalue
-    PetscScalar :: k_o    ! old k-eigenvlaue
-    PetscScalar :: num    ! numerator for eigenvalue update
-    PetscScalar :: den    ! denominator for eigenvalue update
-    PetscInt    :: ierr   ! error flag
+    real(8)     :: k_n    ! new k-eigenvalue
+    real(8)     :: k_o    ! old k-eigenvlaue
+    real(8)     :: num    ! numerator for eigenvalue update
+    real(8)     :: den    ! denominator for eigenvalue update
+    integer     :: ierr   ! error flag
     KSP         :: krylov ! krylov solver
     PC          :: prec   ! preconditioner for krylov
 
@@ -282,10 +282,159 @@ contains
 
   subroutine loss_matrix(M)
 
+    use cmfd_utils,  only: get_matrix_idx
+
+#include <finclude/petsc.h90>
+
     ! arguments
     Mat    :: M   ! loss matrix
 
     ! local variables
+    integer :: nx                 ! maximum number of cells in x direction
+    integer :: ny                 ! maximum number of cells in y direction
+    integer :: nz                 ! maximum number of cells in z direction
+    integer :: ng                 ! maximum number of energy groups
+    integer :: nxyzg(4,2)         ! single vector containing boundary locations
+    integer :: i                  ! iteration counter for x
+    integer :: j                  ! iteration counter for y
+    integer :: k                  ! iteration counter for z
+    integer :: g                  ! iteration counter for groups
+    integer :: l                  ! iteration counter for leakages
+    integer :: h                  ! energy group when doing scattering
+    integer :: cell_mat_idx       ! matrix index of current cell
+    integer :: neig_mat_idx       ! matrix index of neighbor cell
+    integer :: scatt_mat_idx      ! matrix index for h-->g scattering terms
+    integer :: bound(6)           ! vector for comparing when looking for boundaries
+    integer :: xyz_idx            ! index for determining if x,y or z leakage
+    integer :: dir_idx            ! index for determining - or + face of cell
+    integer :: neig_idx(3)        ! spatial indices of neighbour
+    integer :: shift_idx          ! parameter to shift index by +1 or -1
+    integer :: ierr               ! Persc error code
+    real(8) :: totxs              ! total macro cross section
+    real(8) :: scattxsgg          ! scattering macro cross section g-->g
+    real(8) :: scattxshg          ! scattering macro cross section h-->g
+    real(8) :: dtilda(6)          ! finite difference coupling parameter
+    real(8) :: dhat(6)            ! nonlinear coupling parameter
+    real(8) :: hxyz(3)            ! cell lengths in each direction
+    real(8) :: jn                 ! direction dependent leakage coeff to neig
+    real(8) :: jo(6)              ! leakage coeff in front of cell flux
+    real(8) :: jnet               ! net leakage from jo
+    real(8) :: val                ! temporary variable before saving to matrix 
+
+    ! initialize matrix for building
+    call MatAssemblyBegin(M,MAT_FLUSH_ASSEMBLY,ierr)
+
+    ! get maximum indices
+    nx = cmfd%indices(1)
+    ny = cmfd%indices(2)
+    nz = cmfd%indices(3)
+    ng = cmfd%indices(4)
+
+    ! create single vector of these indices for boundary calculation
+    nxyzg(:,1) = (/1,nx,1,ny/)
+    nxyzg(:,2) = (/1,nz,1,ng/)
+
+    ! begin iteration loops
+    GROUP:  do g = 1,ng
+
+      ZLOOP: do k = 1,nz
+
+        YLOOP: do j = 1,ny
+
+          XLOOP: do i = 1,nx
+
+            ! get matrix index of cell
+            cell_mat_idx = get_matrix_idx(i,j,k,g,nx,ny,nz)
+
+            ! retrieve cell data
+            totxs = cmfd%totalxs(i,j,k,g)
+            scattxsgg = cmfd%scattxs(i,j,k,g,g)
+            dtilda = cmfd%dtilda(i,j,k,g,:)
+            dhat = cmfd%dhat(i,j,k,g,:)
+            hxyz = cmfd%hxyz(i,j,k,:)
+
+            ! create boundary vector 
+            bound = (/i,i,j,j,k,k/)
+
+            ! begin loop over leakages
+            ! 1=-x, 2=+x, 3=-y, 4=+y, 5=-z, 6=+z 
+            LEAK: do l = 1,6
+
+              ! define (x,y,z) and (-,+) indices
+              xyz_idx = int(ceiling(real(l)/real(2)))  ! x=1, y=2, z=3
+              dir_idx = 2 - mod(l,2) ! -=1, +=2
+
+              ! calculate spatial indices of neighbor
+              neig_idx = (/i,j,k/)                ! begin with i,j,k
+              shift_idx = -2*mod(l,2) +1          ! shift neig by -1 or +1
+              neig_idx(xyz_idx) = shift_idx + neig_idx(xyz_idx) 
+
+              ! check for global boundary
+              if (bound(l) /= nxyzg(xyz_idx,dir_idx)) then
+
+                ! compute leakage coefficient for neighbor
+                jn = -dtilda(l) + shift_idx*dhat(l)
+
+                ! get neighbor matrix index
+                neig_mat_idx = get_matrix_idx(neig_idx(1),neig_idx(2),         &
+               &                              neig_idx(3),g,nx,ny,nz) 
+
+                ! compute value to bank
+                val = jn/hxyz(xyz_idx)
+
+                ! record value in matrix
+                call MatSetValue(M,cell_mat_idx-1,neig_mat_idx-1,val,          &
+               &                 INSERT_VALUES,ierr)
+
+              end if
+
+              ! compute leakage coefficient for target
+              jo(l) = shift_idx*dtilda(l) + dhat(l) 
+
+            end do LEAK
+
+            ! calate net leakage coefficient for target
+            jnet = (jo(2) - jo(1))/hxyz(1) + (jo(4) - jo(3))/hxyz(2) +         &
+           &       (jo(6) - jo(5))/hxyz(3) 
+
+            ! calculate loss of neutrons
+            val = jnet + totxs - scattxsgg
+
+            ! record diagonal term
+            call MatSetValue(M,cell_mat_idx-1,cell_mat_idx-1,val,INSERT_VALUES,&
+           &                 ierr)
+
+            ! begin loop over off diagonal in-scattering
+            SCATTR: do h = 1,ng
+
+              ! cycle though if h=g
+              if (h == g) then
+                cycle
+              end if
+
+              ! get matrix index of in-scatter
+              scatt_mat_idx = get_matrix_idx(i,j,k,h,nx,ny,nz)
+
+              ! get scattering macro xs
+              scattxshg = cmfd%scattxs(i,j,k,h,g)
+
+              ! record value in matrix
+              val = scattxshg
+              call MatSetValue(M,cell_mat_idx-1,scatt_mat_idx-1,val,            &
+             &                 INSERT_VALUES,ierr)
+
+            end do SCATTR
+
+          end do XLOOP
+
+        end do YLOOP
+
+      end do ZLOOP
+
+    end do GROUP
+
+    ! finalize matrix assembly
+    call MatAssemblyEnd(M,MAT_FINAL_ASSEMBLY,ierr)
 
   end subroutine loss_matrix
 
