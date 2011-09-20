@@ -188,31 +188,58 @@ contains
     Vec         :: phi_o      ! old flux eigenvector
     Vec         :: S_n        ! new source vector
     Vec         :: S_o        ! old seource vector
-    PetscScalar :: k_n        ! new k-eigenvalue
-    PetscScalar :: k_o        ! old k-eigenvalue
+    real(8)     :: k_n        ! new k-eigenvalue
+    real(8)     :: k_o        ! old k-eigenvalue
     KSP         :: krylov     ! krylov solver
     PC          :: prec       ! preconditioner for krylov
  
     ! local variables
-    PetscInt             :: n           ! dimensions of matrix
-    PetscInt             :: ierr        ! error flag
-    PetscScalar          :: guess=1.0   ! initial guess
-    PetscScalar          :: ktol=1.e-7  ! krylov tolerance
+    integer             :: n           ! dimensions of matrix
+    integer             :: nz_M        ! number of nonzeros in loss matrix
+    integer             :: nz_F        ! number of nonzeros in prod matrix
+    integer             :: ierr        ! error flag
+    integer             :: nx          ! maximum number of x cells
+    integer             :: ny          ! maximum number of y cells
+    integer             :: nz          ! maximum number of z cells
+    integer             :: ng          ! maximum number of groups
+    integer             :: n_corner    ! number of corner cells
+    integer             :: n_edge      ! number of edge cells
+    integer             :: n_side      ! number of side cells
+    integer             :: n_int       ! number of interior cells 
+    real(8)             :: guess=1.0   ! initial guess
+    real(8)          :: ktol=1.e-7  ! krylov tolerance
 
 
-    ! get indices for allocation
-!    n = cmfd%indices(1)*cmfd%indices(2)*cmfd%indices(3)*cmfd%indices(4)
-    n = 10
+    ! get maximum number of cells in each direction
+    nx = cmfd%indices(1)
+    ny = cmfd%indices(2)
+    nz = cmfd%indices(3)
+    ng = cmfd%indices(4)
+
+    ! calculate dimensions of matrix
+    n = nx*ny*nz*ng
+
+    ! calculate # of types of cells
+    n_corner = 8
+    n_edge = 4*(nx + ny + nz) - 24
+    n_side = 2*(nx*ny + ny*nz + nz*nx) - 8*(nx + ny + nz) + 24
+    n_int = nx*ny*nz - n_side - n_edge - n_corner
+
+    ! calculate number of non-zeros in each matrix
+    nz_M = ng*(nx*ny*nz + n_int*6 + n_side*5 + n_edge*4 + n_corner*3) +        &
+   &       (ng**2 -ng)*nx*ny*nz
+    nz_F = ng**2*nx*ny*nz
+
     ! set up loss matrix
     call MatCreate(PETSC_COMM_WORLD,M,ierr)
     call MatSetType(M,MATAIJ,ierr)
-    call MatSetSizes(M,PETSC_DECIDE,PETSC_DECIDE,n,n,ierr)
+    call MatSetSizes(M,PETSC_DECIDE,PETSC_DECIDE,n,nz_M,ierr)
     call MatSetFromOptions(M,ierr)
 
     ! set up production matrix
     call MatCreate(PETSC_COMM_WORLD,F,ierr)
     call MatSetType(F,MATAIJ,ierr)
-    call MatSetSizes(F,PETSC_DECIDE,PETSC_DECIDE,n,n,ierr)
+    call MatSetSizes(F,PETSC_DECIDE,PETSC_DECIDE,n,nz_F,ierr)
     call MatSetFromOptions(F,ierr)
 
     ! set up flux vectors
