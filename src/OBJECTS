@@ -1,6 +1,7 @@
 objects = \
 cmfd_header.o \
 cmfd_execute.o \
+cmfd_utils.o \
 global.o \
 main.o \
 xml_cmfd.o

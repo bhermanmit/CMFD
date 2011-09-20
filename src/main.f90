@@ -1,7 +1,8 @@
 program main
 
   use global
-  use cmfd_execute,  only: allocate_cmfd,read_input 
+  use cmfd_execute,  only: allocate_cmfd
+  use cmfd_utils,    only: read_input
 
   implicit none
 

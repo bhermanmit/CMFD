@@ -10,36 +10,36 @@ module cmfd_header
   type cmfd_obj
 
     ! array indices([1-x,2-y,3-z,4-g],upper bound)
-    real              :: indices(4)
+    integer              :: indices(4)
 
     ! cross sections
-    real, allocatable :: totalxs(:,:,:,:)
-    real, allocatable :: scattxs(:,:,:,:,:)
-    real, allocatable :: nfissxs(:,:,:,:,:)
+    real(8), allocatable :: totalxs(:,:,:,:)
+    real(8), allocatable :: scattxs(:,:,:,:,:)
+    real(8), allocatable :: nfissxs(:,:,:,:,:)
 
     ! currents
-    real, allocatable :: currentX(:,:,:,:)
-    real, allocatable :: currentY(:,:,:,:)
-    real, allocatable :: currentZ(:,:,:,:)
+    real(8), allocatable :: currentX(:,:,:,:)
+    real(8), allocatable :: currentY(:,:,:,:)
+    real(8), allocatable :: currentZ(:,:,:,:)
 
     ! coupling coefficients
-    real, allocatable :: dtilda(:,:,:,:,:)
-    real, allocatable :: dhat(:,:,:,:,:)
+    real(8), allocatable :: dtilda(:,:,:,:,:)
+    real(8), allocatable :: dhat(:,:,:,:,:)
 
     ! core albedo boundary conditions
-    real              :: albedo(6)
+    real(8)              :: albedo(6)
 
     ! dimensions of mesh cells (xloc,yloc,zloc,[hu,hv,hw])
-    real, allocatable :: h(:,:,:,:)
+    real(8), allocatable :: h(:,:,:,:)
 
     ! source probability distribution
-    real, allocatable :: sourcepdf(:,:,:,:)
+    real(8), allocatable :: sourcepdf(:,:,:,:)
 
     ! source sites in each mesh box
-    real, allocatable :: sourcecounts(:,:,:,:)
+    real(8), allocatable :: sourcecounts(:,:,:,:)
 
     ! weight adjustment factors
-    real, allocatable :: weightfactors(:,:,:,:)
+    real(8), allocatable :: weightfactors(:,:,:,:)
 
     ! we may need to add the mesh object
     ! add accumulation of important parameters
