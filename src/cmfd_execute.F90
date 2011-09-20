@@ -22,6 +22,7 @@ contains
     integer     :: ierr
     integer     :: nx
     integer     :: ny
+    PetscViewer viewer
 
     ! dimensions
     nx = cmfd%indices(1)
@@ -50,7 +51,11 @@ contains
 
     call MatAssemblyEnd(T,MAT_FINAL_ASSEMBLY,ierr)
 
-    call MatView(T,PETSC_VIEWER_STDOUT_SELF,ierr)
+    call PetscViewerBinaryOpen(PETSC_COMM_WORLD,'matrixmat',FILE_MODE_WRITE,viewer,ierr)
+
+    call MatView(T,viewer,ierr)
+
+    call PetscViewerDestroy(viewer,ierr)
 
     call MatDestroy(T,ierr)
 

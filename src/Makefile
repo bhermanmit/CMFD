@@ -25,7 +25,7 @@ include OBJECTS
 
 all:	$(program)
 $(program): $(objects) chkopts
-	${FLINKER} $(objects) -o $@ $(LDFLAGS) ${PETSC_SNES_LIB}
+	${FLINKER} $(objects) -o $@ $(LDFLAGS) ${PETSC_SYS_LIB}
 
 #===============================================================================
 # Rules
