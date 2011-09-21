@@ -77,6 +77,111 @@ contains
 
   subroutine compute_diffcoef()
 
+    ! local variables
+    integer :: nx                 ! maximum number of cells in x direction
+    integer :: ny                 ! maximum number of cells in y direction
+    integer :: nz                 ! maximum number of cells in z direction
+    integer :: ng                 ! maximum number of energy groups
+    integer :: nxyzg(4,2)         ! single vector containing boundary locations
+    integer :: i                  ! iteration counter for x
+    integer :: j                  ! iteration counter for y
+    integer :: k                  ! iteration counter for z
+    integer :: g                  ! iteration counter for groups
+    integer :: l                  ! iteration counter for leakages
+    integer :: xyz_idx            ! index for determining if x,y or z leakage
+    integer :: dir_idx            ! index for determining - or + face of cell
+    integer :: shift_idx          ! parameter to shift index by +1 or -1
+    integer :: neig_idx(3)        ! spatial indices of neighbour
+    integer :: bound(6)           ! vector containing indices for boudary check
+    real(8) :: albedo(6)          ! albedo vector with global boundaries
+    real(8) :: cell_totxs         ! total cross section of current ijk cell
+    real(8) :: cell_dc            ! diffusion coef of current cell
+    real(8) :: cell_hxyz(3)       ! cell dimensions of current ijk cell
+    real(8) :: neig_totxs         ! total xs of neighbor cell
+    real(8) :: neig_dc            ! diffusion coefficient of neighbor cell
+    real(8) :: neig_hxyz(3)       ! cell dimensions of neighbor cell
+    real(8) :: dtilda             ! finite difference coupling parameter 
+
+    ! get maximum of spatial and group indices
+    nx = cmfd%indices(1)
+    ny = cmfd%indices(2)
+    nz = cmfd%indices(3)
+    ng = cmfd%indices(4)
+
+    ! create single vector of these indices for boundary calculation
+    nxyzg(:,1) = (/1,nx,1,ny/)
+    nxyzg(:,2) = (/1,nz,1,ng/)
+
+    ! get boundary condition information
+    albedo = cmfd%albedo
+
+    ! geting loop over group and spatial indices
+    GROUP:  do g = 1,ng
+
+      ZLOOP: do k = 1,nz
+
+        YLOOP: do j = 1,ny
+
+          XLOOP: do i = 1,nx
+
+            ! get cell data
+            cell_totxs = cmfd%totalxs(i,j,k,g)
+            cell_hxyz = cmfd%hxyz(i,j,k,:)
+
+            ! compute diffusion coefficient
+            cell_dc = 1/(3*cell_totxs)
+
+            ! setup of vector to identify boundary conditions
+            bound = (/i,i,j,j,k,k/)
+
+            ! begin loop around sides of cell for leakage
+            LEAK: do l = 1,6
+
+              ! define xyz and +/- indices
+              xyz_idx = int(ceiling(real(l)/real(2)))  ! x=1, y=2, z=3
+              dir_idx = 2 - mod(l,2) ! -=1, +=2
+              shift_idx = -2*mod(l,2) +1          ! shift neig by -1 or +1
+
+              ! check if at a boundary
+              if (bound(l) == nxyzg(xyz_idx,dir_idx)) then
+
+                ! compute dtilda
+                dtilda = (2*cell_dc*(1-albedo(l)))/(4*cell_dc*(1+albedo(l)) +  &
+               &         (1-albedo(l))*cell_hxyz(xyz_idx))
+
+              else  ! not a boundary
+
+                ! compute neighboring cell indices
+                neig_idx = (/i,j,k/)                ! begin with i,j,k
+                neig_idx(xyz_idx) = shift_idx + neig_idx(xyz_idx)
+
+                ! get neigbor cell data
+                neig_totxs = cmfd%totalxs(neig_idx(1),neig_idx(2),neig_idx(3), &
+                                          g)
+                neig_hxyz = cmfd%hxyz(neig_idx(1),neig_idx(2),neig_idx(3),:)
+  
+                ! compute neighbor diffusion coefficient
+                neig_dc = 1/(3*neig_totxs)
+
+                ! compute dtilda
+                dtilda = (2*cell_dc*neig_dc)/(neig_hxyz(xyz_idx)*cell_dc +     &
+               &          cell_hxyz(xyz_idx)*neig_dc)
+
+              end if
+  
+              ! record dtilda in cmfd object
+              cmfd%dtilda(i,j,k,g,l) = dtilda
+
+            end do LEAK
+
+          end do XLOOP
+
+        end do YLOOP
+
+      end do ZLOOP
+
+    end do GROUP
+
   end subroutine compute_diffcoef
 
 !===============================================================================
