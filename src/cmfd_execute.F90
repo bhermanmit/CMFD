@@ -418,8 +418,8 @@ contains
               ! get scattering macro xs
               scattxshg = cmfd%scattxs(i,j,k,h,g)
 
-              ! record value in matrix
-              val = scattxshg
+              ! record value in matrix (negate it)
+              val = -scattxshg
               call MatSetValue(M,cell_mat_idx-1,scatt_mat_idx-1,val,            &
              &                 INSERT_VALUES,ierr)
 
@@ -444,10 +444,73 @@ contains
 
   subroutine prod_matrix(F)
 
+    use cmfd_utils,  only: get_matrix_idx
+
+#include <finclude/petsc.h90>
+
     ! arguments
     Mat     :: F  ! production matrix
 
     ! local variables
+    integer :: nx                 ! maximum number of cells in x direction
+    integer :: ny                 ! maximum number of cells in y direction
+    integer :: nz                 ! maximum number of cells in z direction
+    integer :: ng                 ! maximum number of energy groups
+    integer :: i                  ! iteration counter for x
+    integer :: j                  ! iteration counter for y
+    integer :: k                  ! iteration counter for z
+    integer :: g                  ! iteration counter for groups
+    integer :: l                  ! iteration counter for leakages
+    integer :: h                  ! energy group when doing scattering
+    integer :: gmat_idx           ! index in matrix for energy group g
+    integer :: hmat_idx           ! index in matrix for energy group h
+    integer :: ierr               ! Petsc error code
+    real(8) :: nfissxs            ! nufission cross section h-->g
+    real(8) :: val                ! temporary variable for nfissxs
+
+    ! initialize matrix for building
+    call MatAssemblyBegin(F,MAT_FLUSH_ASSEMBLY,ierr)
+
+    ! get maximum indices
+    nx = cmfd%indices(1)
+    ny = cmfd%indices(2)
+    nz = cmfd%indices(3)
+    ng = cmfd%indices(4)
+
+    ! begin loop around energy groups and spatial indices
+    GROUP: do g = 1,ng
+
+      ZLOOP: do k = 1,nz
+
+        YLOOP: do j = 1,ny
+
+          XLOOP: do i = 1,nx
+
+            NFISS: do h = 1,ng
+
+              ! get cell data
+              nfissxs = cmfd%nfissxs(i,j,k,h,g)
+
+              ! get matrix location
+              gmat_idx = get_matrix_idx(i,j,k,g,nx,ny,nz)
+              hmat_idx = get_matrix_idx(i,j,k,h,nx,ny,nz)
+
+              ! reocrd value in matrix
+              val = nfissxs
+              call MatSetValue(F,gmat_idx-1,hmat_idx-1,val,INSERT_VALUES,ierr)
+
+            end do NFISS
+
+          end do XLOOP
+
+        end do YLOOP
+
+      end do ZLOOP
+
+    end do GROUP
+
+    ! finalize matrix assembly
+    call MatAssemblyEnd(F,MAT_FINAL_ASSEMBLY,ierr)
 
   end subroutine prod_matrix
 
