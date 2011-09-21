@@ -625,16 +625,41 @@ contains
 
   subroutine convergence(phi_n,phi_o,S_n,S_o,k_o,k_n,iconv)
 
+#include <finclude/petsc.h90>
+
     ! arguments
     Vec         :: phi_n  ! new flux eigenvector
     Vec         :: phi_o  ! old flux eigenvector
     Vec         :: S_n    ! new source vector
     Vec         :: S_o    ! old source vector
-    PetscScalar :: k_n    ! new k-eigenvalue
-    PetscScalar :: k_o    ! old k-eigenvalue
+    real(8)     :: k_n    ! new k-eigenvalue
+    real(8)     :: k_o    ! old k-eigenvalue
     logical     :: iconv  ! is the problem converged
 
     ! local variables
+    real(8)     :: ktol = 1.e-6   ! tolerance on keff
+    real(8)     :: ftol = 1.e-4   ! tolerance on flux
+    real(8)     :: stol = 1.e-5   ! tolerance on source
+    real(8)     :: kerr           ! error in keff
+    real(8)     :: ferr           ! error in flux
+    real(8)     :: serr           ! error in source
+    integer     :: floc           ! location of max error in flux
+    integer     :: sloc           ! location of max error in source
+
+    ! reset convergence flag
+    iconv = .FALSE.
+
+    ! calculate error in keff
+    kerr = abs(k_o - k_n)/k_n
+
+    ! calculate max error in flux
+    call VecMax((phi_n - phi_o)/phi_n,floc,ferr)
+
+    ! calculate max error in source
+    call VecMax((S_n - S_o)/S_n,sloc,serr)
+
+    ! check for convergence
+    if(kerr < ktol .and. ferr < ftol .and. serr < stol) iconv = .TRUE.
  
   end subroutine convergence
 
