@@ -65,6 +65,7 @@ contains
     
       ! write out fatal error
       print *,'FATAL ===> core map dimensions not consistent'
+      STOP
 
     end if
 
@@ -88,8 +89,11 @@ contains
 
             ! check to see if matid is there
             if (matid > size(mat,1)) then
+
+              ! write out fatal error
               print *, 'Fatal Error ===> MATERIAL ID',matid,' NOT SET!'
               STOP
+
             end if
 
             ! set tot xs and diff coef

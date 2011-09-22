@@ -82,7 +82,7 @@ contains
     integer :: ny                 ! maximum number of cells in y direction
     integer :: nz                 ! maximum number of cells in z direction
     integer :: ng                 ! maximum number of energy groups
-    integer :: nxyzg(4,2)         ! single vector containing boundary locations
+    integer :: nxyz(3,2)          ! single vector containing boundary locations
     integer :: i                  ! iteration counter for x
     integer :: j                  ! iteration counter for y
     integer :: k                  ! iteration counter for z
@@ -109,8 +109,9 @@ contains
     ng = cmfd%indices(4)
 
     ! create single vector of these indices for boundary calculation
-    nxyzg(:,1) = (/1,nx,1,ny/)
-    nxyzg(:,2) = (/1,nz,1,ng/)
+    nxyz(1,:) = (/1,nx/)
+    nxyz(2,:) = (/1,ny/)
+    nxyz(3,:) = (/1,nz/) 
 
     ! get boundary condition information
     albedo = cmfd%albedo
@@ -141,11 +142,13 @@ contains
               shift_idx = -2*mod(l,2) +1          ! shift neig by -1 or +1
 
               ! check if at a boundary
-              if (bound(l) == nxyzg(xyz_idx,dir_idx)) then
+              if (bound(l) == nxyz(xyz_idx,dir_idx)) then
 
                 ! compute dtilda
                 dtilda = (2*cell_dc*(1-albedo(l)))/(4*cell_dc*(1+albedo(l)) +  &
                &         (1-albedo(l))*cell_hxyz(xyz_idx))
+
+         print *,i,j,k,g,l,dtilda
 
               else  ! not a boundary
 
@@ -175,6 +178,9 @@ contains
       end do ZLOOP
 
     end do GROUP
+
+    print *, 'DTILDA:'
+    print *,cmfd%dtilda
 
   end subroutine compute_diffcoef
 
@@ -393,7 +399,7 @@ contains
     integer :: ny                 ! maximum number of cells in y direction
     integer :: nz                 ! maximum number of cells in z direction
     integer :: ng                 ! maximum number of energy groups
-    integer :: nxyzg(4,2)         ! single vector containing boundary locations
+    integer :: nxyz(3,2)          ! single vector containing boundary locations
     integer :: i                  ! iteration counter for x
     integer :: j                  ! iteration counter for y
     integer :: k                  ! iteration counter for z
@@ -430,8 +436,9 @@ contains
     ng = cmfd%indices(4)
 
     ! create single vector of these indices for boundary calculation
-    nxyzg(:,1) = (/1,nx,1,ny/)
-    nxyzg(:,2) = (/1,nz,1,ng/)
+    nxyz(1,:) = (/1,nx/)
+    nxyz(2,:) = (/1,ny/)
+    nxyz(3,:) = (/1,nz/)
 
     ! begin iteration loops
     GROUP:  do g = 1,ng
@@ -469,7 +476,7 @@ contains
               neig_idx(xyz_idx) = shift_idx + neig_idx(xyz_idx) 
 
               ! check for global boundary
-              if (bound(l) /= nxyzg(xyz_idx,dir_idx)) then
+              if (bound(l) /= nxyz(xyz_idx,dir_idx)) then
 
                 ! compute leakage coefficient for neighbor
                 jn = -dtilda(l) + shift_idx*dhat(l)
