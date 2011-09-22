@@ -7,6 +7,5 @@ program main
   implicit none
 
   call read_input()
-  call allocate_cmfd()
 
 end program main

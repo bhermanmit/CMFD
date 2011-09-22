@@ -42,6 +42,7 @@ contains
     allocate(cmfd%totalxs(nx,ny,nz,ng))
     allocate(cmfd%scattxs(nx,ny,nz,ng,ng))
     allocate(cmfd%nfissxs(nx,ny,nz,ng,ng))
+    allocate(cmfd%diffcof(nx,ny,nz,ng))
     allocate(cmfd%dtilda(nx,ny,nz,ng,6))
     allocate(cmfd%dhat(nx,ny,nz,ng,6))
     allocate(cmfd%hxyz(nx,ny,nz,3))
@@ -53,8 +54,19 @@ contains
     cmfd%indices(3) = nz
     cmfd%indices(4) = ng
 
+    ! set boundary conditions
+    cmfd%albedo = geometry%bc
+
     ! set dhat to 0.0
     cmfd%dhat = 0.0
+
+    ! check core map dimensions
+    if (size(geometry%mesh,1) /= nx*ny*nz) then
+    
+      ! write out fatal error
+      print *,'FATAL ===> core map dimensions not consistent'
+
+    end if
 
     ! read in core map and xs
     GROUP: do g = 1,ng
@@ -71,13 +83,16 @@ contains
             ! extract material identifier
             matid = geometry%mesh(map_idx)
 
+            ! record to core map
+            cmfd%coremap(i,j,k) = matid
+
             ! check to see if matid is there
             if (matid > size(mat,1)) then
               print *, 'Fatal Error ===> MATERIAL ID',matid,' NOT SET!'
               STOP
             end if
 
-            ! set tot xs and diff coef 
+            ! set tot xs and diff coef
             cmfd%totalxs(i,j,k,g) = mat(matid)%totxs(g)
             cmfd%diffcof(i,j,k,g) = mat(matid)%diffcoef(g)
 
@@ -137,6 +152,28 @@ contains
       STOP
 
     end if
+
+    ! echo input
+    print *, 'Dimensions:'
+    print *,cmfd%indices
+    print *, 'CORE MAP:'
+    print *,cmfd%coremap
+    print *, 'TOTAL XS:'
+    print *,cmfd%totalxs
+    print *, 'SCATTERING XS:'
+    print *,cmfd%scattxs
+    print *, 'Nu-FISSION XS:'
+    print *,cmfd%nfissxs
+    print *, 'DIFFUSION COEFFICIENT:'
+    print *,cmfd%diffcof
+    print *, 'BOUNDARY CONDITIONS:'
+    print *,cmfd%albedo
+    print *, 'CORE CELL DIMENSIONS X:'
+    print *,cmfd%hxyz(:,:,:,1)
+    print *, 'CORE CELL DIMENSIONS Y:'
+    print *,cmfd%hxyz(:,:,:,2)
+    print *, 'CORE CELL DIMENSIONS Z:'
+    print *,cmfd%hxyz(:,:,:,3)
 
   end subroutine read_input
 

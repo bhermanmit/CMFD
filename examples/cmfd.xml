@@ -2,7 +2,22 @@
 <cmfd>
 
 <!-- Definition of Geometry -->
+  <geometry>
+    <nx>10</nx>
+    <ny>1</ny>
+    <nz>1</nz>
+    <ng>1</ng>
+    <mesh> 1 1 1 1 1 1 1 1 1 1 </mesh>
+    <uniform> 1.0 0.1 0.1 </uniform>
+    <bc> 0.0 0.0 1.0 1.0 1.0 1.0 </bc>
+  </geometry>
 
 <!-- Defition of Materials -->
-    
+  <mat uid="1">
+    <totxs>1.0</totxs>
+    <scattxs>0.5</scattxs>
+    <nfissxs>0.48</nfissxs>
+    <diffcoef>0.3</diffcoef>
+  </mat>
+
 </cmfd>
