@@ -217,6 +217,7 @@ contains
     integer     :: ierr    ! error flag
     KSP         :: krylov  ! krylov solver
     PC          :: prec    ! preconditioner for krylov
+    PetscViewer :: viewer  ! viewer for answer
 
     integer :: i       ! iteration counter
     logical :: iconv   ! is problem converged
@@ -273,10 +274,16 @@ contains
 
     end do
 
+    ! output answers
+    print *,'keff:',k_o
+    call PetscViewerBinaryOpen(PETSC_COMM_WORLD,'fluxvec.bin',FILE_MODE_WRITE, &
+                               viewer,ierr)
+    call VecView(phi_n,viewer,ierr)
+    call PetscViewerDestroy(viewer,ierr)
+
     ! finalize PETSc
     call PetscFinalize(ierr)
 
-    print *,'keff:',k_o
 
   end subroutine cmfd_solver
 
@@ -493,7 +500,6 @@ contains
                 val = jn/hxyz(xyz_idx)
 
                 ! record value in matrix
-                print *,cell_mat_idx,neig_mat_idx,val
                 call MatSetValue(M,cell_mat_idx-1,neig_mat_idx-1,val,          &
                &                 INSERT_VALUES,ierr)
 
