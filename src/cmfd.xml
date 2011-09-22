@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cmfd>
+
+  <geometry>
+    <nx>3</nx>
+    <ny>3</ny>
+    <nz>1</nz>
+    <ng>1</ng>
+  </geometry>
+
+  <mat uid="1">
+    <totxs> 
+      1.1 2.2 3.3
+      4.4 5.5 6.6
+      7.7 8.8 9.9
+    </totxs>
+  </mat>
+
+</cmfd>
