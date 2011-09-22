@@ -2,3 +2,5 @@
 *.o
 cmfd
 *.swp
+*.bin
+*.info

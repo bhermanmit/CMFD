@@ -148,8 +148,6 @@ contains
                 dtilda = (2*cell_dc*(1-albedo(l)))/(4*cell_dc*(1+albedo(l)) +  &
                &         (1-albedo(l))*cell_hxyz(xyz_idx))
 
-         print *,i,j,k,g,l,dtilda
-
               else  ! not a boundary
 
                 ! compute neighboring cell indices
@@ -179,9 +177,6 @@ contains
 
     end do GROUP
 
-    print *, 'DTILDA:'
-    print *,cmfd%dtilda
-
   end subroutine compute_diffcoef
 
 !===============================================================================
@@ -208,19 +203,20 @@ contains
 
 #include <finclude/petsc.h90>
 
-    Mat         :: M      ! loss matrix
-    Mat         :: F      ! production matrix
-    Vec         :: phi_n  ! new flux eigenvector
-    Vec         :: phi_o  ! old flux eigenvector
-    Vec         :: S_n    ! new source vector
-    Vec         :: S_o    ! old source vector
-    real(8)     :: k_n    ! new k-eigenvalue
-    real(8)     :: k_o    ! old k-eigenvlaue
-    real(8)     :: num    ! numerator for eigenvalue update
-    real(8)     :: den    ! denominator for eigenvalue update
-    integer     :: ierr   ! error flag
-    KSP         :: krylov ! krylov solver
-    PC          :: prec   ! preconditioner for krylov
+    Mat         :: M       ! loss matrix
+    Mat         :: F       ! production matrix
+    Vec         :: phi_n   ! new flux eigenvector
+    Vec         :: phi_o   ! old flux eigenvector
+    Vec         :: S_n     ! new source vector
+    Vec         :: S_o     ! old source vector
+    real(8)     :: k_n     ! new k-eigenvalue
+    real(8)     :: k_o     ! old k-eigenvlaue
+    real(8)     :: num     ! numerator for eigenvalue update
+    real(8)     :: den     ! denominator for eigenvalue update
+    real(8)     :: one=1.0 ! one
+    integer     :: ierr    ! error flag
+    KSP         :: krylov  ! krylov solver
+    PC          :: prec    ! preconditioner for krylov
 
     integer :: i       ! iteration counter
     logical :: iconv   ! is problem converged
@@ -234,6 +230,7 @@ contains
     ! initialize matrices and vectors
     call init_data(M,F,phi_n,phi_o,S_n,S_o,k_n,k_o,krylov,prec)
 
+
     ! set up M loss matrix
     call loss_matrix(M)
 
@@ -244,22 +241,25 @@ contains
     do i = 1,10000
 
       ! compute source vector
-      call MatMult(F,phi_o,S_o)
+      call MatMult(F,phi_o,S_o,ierr)
 
       ! normalize source vector
-      call VecScale(S_o,1.0/k_o)
+      call VecScale(S_o,one/k_o,ierr)
 
       ! compute new flux vector
       call KSPSetOperators(krylov, M, M, SAME_NONZERO_PATTERN, ierr)
       call KSPSolve(krylov,S_o,phi_n,ierr)
 
       ! compute new source vector
-      call MatMult(F,phi_n,S_n)
+      call MatMult(F,phi_n,S_n,ierr)
 
       ! compute new k-eigenvalue
-      call VecSum(S_n,num)
-      call VecSum(S_o,den)
+      call VecSum(S_n,num,ierr)
+      call VecSum(S_o,den,ierr)
       k_n = num/den
+
+      ! renormalize the old source
+      call VecScale(S_o,k_o,ierr)
 
       ! check convergence
       call convergence(phi_n,phi_o,S_n,S_o,k_o,k_n,iconv)
@@ -268,13 +268,15 @@ contains
       if (iconv) exit
 
       ! record old values
-      call VecCopy(phi_n,phi_o)
+      call VecCopy(phi_n,phi_o,ierr)
       k_o = k_n
 
     end do
 
     ! finalize PETSc
     call PetscFinalize(ierr)
+
+    print *,'keff:',k_o
 
   end subroutine cmfd_solver
 
@@ -292,7 +294,7 @@ contains
     Vec         :: phi_n      ! new flux eigenvector
     Vec         :: phi_o      ! old flux eigenvector
     Vec         :: S_n        ! new source vector
-    Vec         :: S_o        ! old seource vector
+    Vec         :: S_o        ! old source vector
     real(8)     :: k_n        ! new k-eigenvalue
     real(8)     :: k_o        ! old k-eigenvalue
     KSP         :: krylov     ! krylov solver
@@ -338,13 +340,13 @@ contains
     ! set up loss matrix
     call MatCreate(PETSC_COMM_WORLD,M,ierr)
     call MatSetType(M,MATAIJ,ierr)
-    call MatSetSizes(M,PETSC_DECIDE,PETSC_DECIDE,n,nz_M,ierr)
+    call MatSetSizes(M,PETSC_DECIDE,PETSC_DECIDE,n,n,ierr)
     call MatSetFromOptions(M,ierr)
 
     ! set up production matrix
     call MatCreate(PETSC_COMM_WORLD,F,ierr)
     call MatSetType(F,MATAIJ,ierr)
-    call MatSetSizes(F,PETSC_DECIDE,PETSC_DECIDE,n,nz_F,ierr)
+    call MatSetSizes(F,PETSC_DECIDE,PETSC_DECIDE,n,n,ierr)
     call MatSetFromOptions(F,ierr)
 
     ! set up flux vectors
@@ -355,6 +357,7 @@ contains
     call VecSetSizes(phi_o,PETSC_DECIDE,n,ierr)
     call VecSetFromOptions(phi_o,ierr)
 
+
     ! set up source vectors
     call VecCreate(PETSC_COMM_WORLD,S_n,ierr)
     call VecSetSizes(S_n,PETSC_DECIDE,n,ierr)
@@ -364,13 +367,13 @@ contains
     call VecSetFromOptions(S_o,ierr)
 
     ! set initial guess
-    call VecSet(phi_n,guess)
-    call VecSet(phi_o,guess)
+    call VecSet(phi_n,guess,ierr)
+    call VecSet(phi_o,guess,ierr)
     k_n = guess
     k_o = guess  
 
     ! set up krylov solver
-    call KSPCreate(PETSC_COMM_WORLD,krylov)
+    call KSPCreate(PETSC_COMM_WORLD,krylov,ierr)
     call KSPSetTolerances(krylov,ktol,PETSC_DEFAULT_DOUBLE_PRECISION,          &
    &                      PETSC_DEFAULT_DOUBLE_PRECISION,                      &
    &                      PETSC_DEFAULT_INTEGER,ierr)
@@ -425,6 +428,7 @@ contains
     real(8) :: jo(6)              ! leakage coeff in front of cell flux
     real(8) :: jnet               ! net leakage from jo
     real(8) :: val                ! temporary variable before saving to matrix 
+    PetscViewer :: viewer         ! viewer to write out matrix to binary file
 
     ! initialize matrix for building
     call MatAssemblyBegin(M,MAT_FLUSH_ASSEMBLY,ierr)
@@ -489,6 +493,7 @@ contains
                 val = jn/hxyz(xyz_idx)
 
                 ! record value in matrix
+                print *,cell_mat_idx,neig_mat_idx,val
                 call MatSetValue(M,cell_mat_idx-1,neig_mat_idx-1,val,          &
                &                 INSERT_VALUES,ierr)
 
@@ -542,6 +547,12 @@ contains
     ! finalize matrix assembly
     call MatAssemblyEnd(M,MAT_FINAL_ASSEMBLY,ierr)
 
+    ! write out matrix in binary file (debugging)
+    call PetscViewerBinaryOpen(PETSC_COMM_WORLD,'lossmat.bin',FILE_MODE_WRITE, &
+                               viewer,ierr)
+    call MatView(M,viewer,ierr)
+    call PetscViewerDestroy(viewer,ierr)
+
   end subroutine loss_matrix
 
 !===============================================================================
@@ -573,6 +584,7 @@ contains
     integer :: ierr               ! Petsc error code
     real(8) :: nfissxs            ! nufission cross section h-->g
     real(8) :: val                ! temporary variable for nfissxs
+    PetscViewer :: viewer         ! viewer to print out matrix
 
     ! initialize matrix for building
     call MatAssemblyBegin(F,MAT_FLUSH_ASSEMBLY,ierr)
@@ -618,6 +630,12 @@ contains
     ! finalize matrix assembly
     call MatAssemblyEnd(F,MAT_FINAL_ASSEMBLY,ierr)
 
+    ! write out matrix in binary file (debugging)
+    call PetscViewerBinaryOpen(PETSC_COMM_WORLD,'prodmat.bin',FILE_MODE_WRITE, &
+                               viewer,ierr)
+    call MatView(F,viewer,ierr)
+    call PetscViewerDestroy(viewer,ierr)
+
   end subroutine prod_matrix
 
 !===============================================================================
@@ -638,29 +656,53 @@ contains
     logical     :: iconv  ! is the problem converged
 
     ! local variables
+    Vec         :: phi_v          ! flux temp vector 
+    Vec         :: S_v            ! source temp vector
     real(8)     :: ktol = 1.e-6   ! tolerance on keff
     real(8)     :: ftol = 1.e-4   ! tolerance on flux
     real(8)     :: stol = 1.e-5   ! tolerance on source
     real(8)     :: kerr           ! error in keff
     real(8)     :: ferr           ! error in flux
     real(8)     :: serr           ! error in source
+    real(8)     :: one = -1.0     ! one
     integer     :: floc           ! location of max error in flux
     integer     :: sloc           ! location of max error in source
+    integer     :: ierr           ! petsc error code
+    integer     :: n              ! vector size
 
     ! reset convergence flag
     iconv = .FALSE.
+
+    ! initialize temp vectors
+    call VecGetLocalSize(phi_n,n,ierr)
+    call VecCreate(PETSC_COMM_WORLD,phi_v,ierr)
+    call VecSetSizes(phi_v,PETSC_DECIDE,n,ierr)
+    call VecSetFromOptions(phi_v,ierr)
+    call VecCreate(PETSC_COMM_WORLD,S_v,ierr)
+    call VecSetSizes(S_v,PETSC_DECIDE,n,ierr)
+    call VecSetFromOptions(S_v,ierr)
 
     ! calculate error in keff
     kerr = abs(k_o - k_n)/k_n
 
     ! calculate max error in flux
-    call VecMax((phi_n - phi_o)/phi_n,floc,ferr)
+    call VecWAXPY(phi_v,one,phi_n,phi_o,ierr)
+    call VecPointwiseDivide(phi_v,phi_v,phi_n,ierr)
+    call VecAbs(phi_v,ierr)
+    call VecMax(phi_v,floc,ferr,ierr)
 
     ! calculate max error in source
-    call VecMax((S_n - S_o)/S_n,sloc,serr)
+    call VecWAXPY(S_v,one,S_n,S_o,ierr)
+    call VecPointwiseDivide(S_v,S_v,S_n,ierr)
+    call VecAbs(S_v,ierr)
+    call VecMax(S_v,sloc,serr,ierr)
 
     ! check for convergence
     if(kerr < ktol .and. ferr < ftol .and. serr < stol) iconv = .TRUE.
+
+    ! destroy vectors
+    call VecDestroy(phi_v,ierr)
+    call VecDestroy(S_v,ierr)
  
   end subroutine convergence
 
