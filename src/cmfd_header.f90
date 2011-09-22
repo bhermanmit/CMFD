@@ -17,6 +17,9 @@ module cmfd_header
     real(8), allocatable :: scattxs(:,:,:,:,:)
     real(8), allocatable :: nfissxs(:,:,:,:,:)
 
+    ! diffusion coefficient
+    real(8), allocatable :: diffcof(:,:,:,:)
+
     ! currents
     real(8), allocatable :: currentX(:,:,:,:)
     real(8), allocatable :: currentY(:,:,:,:)
@@ -40,6 +43,9 @@ module cmfd_header
 
     ! weight adjustment factors
     real(8), allocatable :: weightfactors(:,:,:,:)
+
+    ! core map for xs association
+    integer, allocatable :: coremap(:,:,:)
 
     ! we may need to add the mesh object
     ! add accumulation of important parameters

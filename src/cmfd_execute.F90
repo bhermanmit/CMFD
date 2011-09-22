@@ -125,11 +125,9 @@ contains
           XLOOP: do i = 1,nx
 
             ! get cell data
-            cell_totxs = cmfd%totalxs(i,j,k,g)
+            cell_dc = cmfd%diffcof(i,j,k,g)
             cell_hxyz = cmfd%hxyz(i,j,k,:)
 
-            ! compute diffusion coefficient
-            cell_dc = 1/(3*cell_totxs)
 
             ! setup of vector to identify boundary conditions
             bound = (/i,i,j,j,k,k/)
@@ -156,13 +154,9 @@ contains
                 neig_idx(xyz_idx) = shift_idx + neig_idx(xyz_idx)
 
                 ! get neigbor cell data
-                neig_totxs = cmfd%totalxs(neig_idx(1),neig_idx(2),neig_idx(3), &
-                                          g)
+                neig_dc = cmfd%diffcof(neig_idx(1),neig_idx(2),neig_idx(3),g)
                 neig_hxyz = cmfd%hxyz(neig_idx(1),neig_idx(2),neig_idx(3),:)
   
-                ! compute neighbor diffusion coefficient
-                neig_dc = 1/(3*neig_totxs)
-
                 ! compute dtilda
                 dtilda = (2*cell_dc*neig_dc)/(neig_hxyz(xyz_idx)*cell_dc +     &
                &          cell_hxyz(xyz_idx)*neig_dc)
