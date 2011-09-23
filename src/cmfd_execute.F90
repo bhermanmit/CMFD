@@ -12,55 +12,6 @@ contains
 
   subroutine allocate_cmfd()
 
-#include <finclude/petsc.h90>
-
-    Mat         :: T      ! test matrix
-    integer     :: i
-    integer     :: j 
-    integer     :: k
-    integer     :: g
-    integer     :: ierr
-    integer     :: nx
-    integer     :: ny
-    PetscViewer viewer
-
-    ! dimensions
-    nx = cmfd%indices(1)
-    ny = cmfd%indices(2)
-
-    ! initialize PETSc
-    call PetscInitialize(PETSC_NULL_CHARACTER,ierr)
-
-    ! set up loss matrix
-    call MatCreate(PETSC_COMM_WORLD,T,ierr)
-    call MatSetType(T,MATAIJ,ierr)
-    call MatSetSizes(T,PETSC_DECIDE,PETSC_DECIDE,nx,ny,ierr)
-    call MatSetFromOptions(T,ierr)
-
-    ! begin matrix assembly
-    call MatAssemblyBegin(T,MAT_FLUSH_ASSEMBLY,ierr)
-
-    ! Begin loops to set values
-    do i =1,nx
-      do j=1,ny
-
-        call MatSetValue(T,i-1,j-1,cmfd%totalxs(i,j,1,1),INSERT_VALUES,ierr)
-
-      end do
-    end do
-
-    call MatAssemblyEnd(T,MAT_FINAL_ASSEMBLY,ierr)
-
-    call PetscViewerBinaryOpen(PETSC_COMM_WORLD,'matrixmat',FILE_MODE_WRITE,viewer,ierr)
-
-    call MatView(T,viewer,ierr)
-
-    call PetscViewerDestroy(viewer,ierr)
-
-    call MatDestroy(T,ierr)
-
-    call PetscFinalize(ierr)
-
   end subroutine allocate_cmfd
 
 !===============================================================================
