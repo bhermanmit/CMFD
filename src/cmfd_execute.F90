@@ -321,6 +321,9 @@ contains
 
     end do
 
+    ! compute source pdf and record in cmfd object
+    call source_pdf(S_n)
+
     ! output answers
     print *,'keff:',k_o
     call PetscViewerBinaryOpen(PETSC_COMM_WORLD,'fluxvec.bin',FILE_MODE_WRITE, &
@@ -763,7 +766,67 @@ contains
 ! SOURCE_PDF calculates the probability distribution of the cmfd fission source
 !===============================================================================
 
-  subroutine source_pdf()
+  subroutine source_pdf(source)
+
+    use cmfd_utils,  only: get_matrix_idx
+
+#include <finclude/petsc.h90>
+
+    ! arguments
+    Vec         :: source     ! new source vector
+ 
+    ! local variables
+    integer :: nx             ! maximum number of cells in x direction
+    integer :: ny             ! maximum number of cells in y direction
+    integer :: nz             ! maximum number of cells in z direction
+    integer :: ng             ! maximum number of energy groups
+    integer :: i              ! iteration counter for x
+    integer :: j              ! iteration counter for y
+    integer :: k              ! iteration counter for z
+    integer :: g              ! iteration counter for groups
+    integer :: ierr           ! PETSC error code
+    integer :: idx            ! index in vector
+    real(8) :: source_tmp     ! temporary value of normalized source
+    real(8) :: total          ! sum of source vector
+    real(8) :: hxyz(3)        ! cell dimensions of current ijk cell
+
+    ! get maximum of spatial and group indices
+    nx = cmfd%indices(1)
+    ny = cmfd%indices(2)
+    nz = cmfd%indices(3)
+    ng = cmfd%indices(4)
+
+    ! loop around indices to map to cmfd object 
+    GROUP:  do g = 1,ng
+
+      ZLOOP: do k = 1,nz
+
+        YLOOP: do j = 1,ny
+
+          XLOOP: do i = 1,nx
+
+            ! get dimensions of cell
+            hxyz = cmfd%hxyz(i,j,k,:)
+
+            ! get index
+            idx = get_matrix_idx(i,j,k,g,nx,ny,nz)
+
+            ! get value from Petsc vector 
+            call VecGetValues(source,1,idx-1,source_tmp,ierr) 
+
+            ! multiply source density by volume and record in object
+            cmfd%sourcepdf = source_tmp*hxyz(1)*hxyz(2)*hxyz(3)
+            
+          end do XLOOP
+
+        end do YLOOP
+
+      end do ZLOOP
+
+    end do GROUP
+
+    ! normalize source such that it sums to 1.0
+    cmfd%sourcepdf = cmfd%sourcepdf/sum(cmfd%sourcepdf)
 
   end subroutine source_pdf
 
