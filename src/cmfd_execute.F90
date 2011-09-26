@@ -136,6 +136,102 @@ contains
 
   subroutine compute_dhat()
 
+   ! local variables
+    integer :: nx                 ! maximum number of cells in x direction
+    integer :: ny                 ! maximum number of cells in y direction
+    integer :: nz                 ! maximum number of cells in z direction
+    integer :: ng                 ! maximum number of energy groups
+    integer :: nxyz(3,2)          ! single vector containing boundary locations
+    integer :: i                  ! iteration counter for x
+    integer :: j                  ! iteration counter for y
+    integer :: k                  ! iteration counter for z
+    integer :: g                  ! iteration counter for groups
+    integer :: l                  ! iteration counter for leakages
+    integer :: xyz_idx            ! index for determining if x,y or z leakage
+    integer :: dir_idx            ! index for determining - or + face of cell
+    integer :: shift_idx          ! parameter to shift index by +1 or -1
+    integer :: neig_idx(3)        ! spatial indices of neighbour
+    integer :: bound(6)           ! vector containing indices for boudary check
+    real(8) :: cell_dtilda(6)     ! cell dtilda for each face
+    real(8) :: cell_flux          ! flux in current cell
+    real(8) :: current(3,2)       ! cell current at each face
+    real(8) :: neig_flux          ! flux in neighbor cell
+    real(8) :: dhat               ! dhat equivalence parameter
+
+    ! get maximum of spatial and group indices
+    nx = cmfd%indices(1)
+    ny = cmfd%indices(2)
+    nz = cmfd%indices(3)
+    ng = cmfd%indices(4)
+
+    ! create single vector of these indices for boundary calculation
+    nxyz(1,:) = (/1,nx/)
+    nxyz(2,:) = (/1,ny/)
+    nxyz(3,:) = (/1,nz/)
+
+    ! geting loop over group and spatial indices
+    GROUP:  do g = 1,ng
+
+      ZLOOP: do k = 1,nz
+
+        YLOOP: do j = 1,ny
+
+          XLOOP: do i = 1,nx
+
+            ! get cell data
+            cell_dtilda = cmfd%dtilda(i,j,k,g,:)
+            cell_flux = cmfd%flux(i,j,k,g)
+            current(1,:) = cmfd%currentX(i-1:i,j,k,g)
+            current(2,:) = cmfd%currentY(i,j-1:j,k,g)
+            current(3,:) = cmfd%currentZ(i,j,k-1:k,g)
+
+
+            ! setup of vector to identify boundary conditions
+            bound = (/i,i,j,j,k,k/)
+
+            ! begin loop around sides of cell for leakage
+            LEAK: do l = 1,6
+
+              ! define xyz and +/- indices
+              xyz_idx = int(ceiling(real(l)/real(2)))  ! x=1, y=2, z=3
+              dir_idx = 2 - mod(l,2) ! -=1, +=2
+              shift_idx = -2*mod(l,2) +1          ! shift neig by -1 or +1
+
+              ! check if at a boundary
+              if (bound(l) == nxyz(xyz_idx,dir_idx)) then
+
+                ! compute dhat
+                dhat = (current(xyz_idx,dir_idx) - shift_idx*cell_dtilda(l)*   &
+               &        cell_flux)/cell_flux
+
+              else  ! not a boundary
+
+                ! compute neighboring cell indices
+                neig_idx = (/i,j,k/)                ! begin with i,j,k
+                neig_idx(xyz_idx) = shift_idx + neig_idx(xyz_idx)
+
+                ! get neigbor cell data
+                neig_flux = cmfd%flux(neig_idx(1),neig_idx(2),neig_idx(3),g)
+
+                ! compute dhat 
+                dhat = (current(xyz_idx,dir_idx) + shift_idx*cell_dtilda(l)*   &
+               &       (neig_flux - cell_flux))/(neig_flux + cell_flux)
+
+              end if
+
+              ! record dtilda in cmfd object
+              cmfd%dhat(i,j,k,g,l) = dhat
+
+            end do LEAK
+
+          end do XLOOP
+
+        end do YLOOP
+
+      end do ZLOOP
+
+    end do GROUP
+
   end subroutine compute_dhat
 
 !===============================================================================

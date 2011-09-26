@@ -25,6 +25,9 @@ module cmfd_header
     real(8), allocatable :: currentY(:,:,:,:)
     real(8), allocatable :: currentZ(:,:,:,:)
 
+    ! flux
+    real(8), allocatable :: flux(:,:,:,:)
+
     ! coupling coefficients
     real(8), allocatable :: dtilda(:,:,:,:,:)
     real(8), allocatable :: dhat(:,:,:,:,:)
