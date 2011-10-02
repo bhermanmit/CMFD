@@ -145,6 +145,7 @@ contains
                   ELOOP: do h = 1,ng
 
                     ! get vector h-->g index
+                    ! two group --> 1-->1,1-->2,2-->1,2-->2
                     hg_idx = g + ng*(h - 1)
                     cmfd%scattxs(ix,jy,kz,h,g) = mat(matid)%scattxs(hg_idx)
                     cmfd%nfissxs(ix,jy,kz,h,g) = mat(matid)%nfissxs(hg_idx)
