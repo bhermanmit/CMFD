@@ -15,28 +15,55 @@ contains
     use xml_data_cmfd_t
 
     ! local variables
-    integer :: nx      ! number of volumes in x-direction
-    integer :: ny      ! number of volumes in y-direction
-    integer :: nz      ! number of volumes in z-direction
-    integer :: ng      ! number of energy groups
-    integer :: i       ! x iteration counter
-    integer :: j       ! y iteration counter
-    integer :: k       ! z iteration counter
-    integer :: g       ! group iteration counter
-    integer :: h       ! group iteration counter
-    integer :: map_idx ! vector location for core map
-    integer :: matid   ! material id number
-    integer :: hg_idx  ! energy h-->g vector location 
-    integer :: dim_idx ! vector location for dimensions
+    integer :: nx                    ! number of volumes in x-direction
+    integer :: ny                    ! number of volumes in y-direction
+    integer :: nz                    ! number of volumes in z-direction
+    integer :: ng                    ! number of energy groups
+    integer :: nnx                   ! number of sub meshes in x-direction
+    integer :: nny                   ! number of sub meshes in y-direction
+    integer :: nnz                   ! number of sub meshes in z-direction
+    integer :: i                     ! x iteration counter
+    integer :: j                     ! y iteration counter
+    integer :: k                     ! z iteration counter
+    integer :: g                     ! group iteration counter
+    integer :: h                     ! group iteration counter
+    integer :: map_idx               ! vector location for core map
+    integer :: matid                 ! material id number
+    integer :: hg_idx                ! energy h-->g vector location 
+    integer :: dim_idx               ! vector location for dimensions
+    integer :: ii                    ! inner loop x iteration
+    integer :: jj                    ! inner loop y iteration
+    integer :: kk                    ! inner loop z iteration
+    integer :: ix                    ! shifted x index
+    integer :: jy                    ! shifted y index
+    integer :: kz                    ! shifted z index
+    integer, allocatable :: xgrid(:) ! grid in the x direction
+    integer, allocatable :: ygrid(:) ! grid in the y direction
+    integer, allocatable :: zgrid(:) ! grid in the z direciton
 
     ! read xml input file
     call read_xml_file_cmfd_t('cmfd.xml')
 
     ! get mesh and group indices
-    nx = geometry%nx
-    ny = geometry%ny
-    nz = geometry%nz
+    nnx = geometry%nx
+    nny = geometry%ny
+    nnz = geometry%nz
     ng = geometry%ng
+
+    ! allocate grid varibles
+    allocate(xgrid(nnx))
+    allocate(ygrid(nny))
+    allocate(zgrid(nnz))
+
+    ! get grid variables
+    xgrid = geometry%xgrid
+    ygrid = geometry%ygrid
+    zgrid = geometry%zgrid
+
+    ! get total in each direction
+    nx = sum(xgrid)
+    ny = sum(ygrid)
+    nz = sum(zgrid)
 
     ! allocate cmfd object
     allocate(cmfd%totalxs(nx,ny,nz,ng))
@@ -62,7 +89,7 @@ contains
     cmfd%dhat = 0.0
 
     ! check core map dimensions
-    if (size(geometry%mesh,1) /= nx*ny*nz) then
+    if (size(geometry%mesh,1) /= nnx*nny*nnz) then
     
       ! write out fatal error
       print *,'FATAL ===> core map dimensions not consistent'
@@ -73,11 +100,11 @@ contains
     ! read in core map and xs
     GROUP: do g = 1,ng
 
-      ZLOOP: do k = 1,nz
+      ZLOOP: do k = 1,nnz
 
-        YLOOP: do j = 1,ny
+        YLOOP: do j = 1,nny
 
-          XLOOP: do i = 1,nx
+          XLOOP: do i = 1,nnx
 
             ! get vector idx for core map
             map_idx = get_matrix_idx(i,j,k,1,nx,ny,nz)
@@ -86,30 +113,48 @@ contains
             matid = geometry%mesh(map_idx)
 
             ! record to core map
-            cmfd%coremap(i,j,k) = matid
+            ZZLOOP: do kk = 1,zgrid(nnz)
 
-            ! check to see if matid is there
-            if (matid > size(mat,1)) then
+              YYLOOP: do jj = 1,ygrid(nny)
 
-              ! write out fatal error
-              print *, 'Fatal Error ===> MATERIAL ID',matid,' NOT SET!'
-              STOP
+                XXLOOP: do ii = 1,xgrid(nnx)
 
-            end if
+                  ! compute shifted indices
+                  ix = sum(xgrid(1:nnx-1)) + ii
+                  jy = sum(ygrid(1:nny-1)) + jj
+                  kz = sum(zgrid(1:nnz-1)) + kk
 
-            ! set tot xs and diff coef
-            cmfd%totalxs(i,j,k,g) = mat(matid)%totxs(g)
-            cmfd%diffcof(i,j,k,g) = mat(matid)%diffcoef(g)
+                  ! record in object
+                  cmfd%coremap(ix,jy,kz) = matid
 
-            ! loop around outgoing energy groups 
-            ELOOP: do h = 1,ng
+                  ! check to see if matid is there
+                  if (matid > size(mat,1)) then
 
-              ! get vector h-->g index
-              hg_idx = g + ng*(h - 1)
-              cmfd%scattxs(i,j,k,h,g) = mat(matid)%scattxs(hg_idx)
-              cmfd%nfissxs(i,j,k,h,g) = mat(matid)%nfissxs(hg_idx)
+                    ! write out fatal error
+                    print *, 'Fatal Error ===> MATERIAL ID',matid,' NOT SET!'
+                    STOP
 
-            end do ELOOP
+                  end if
+
+                  ! set tot xs and diff coef
+                  cmfd%totalxs(ix,jy,kz,g) = mat(matid)%totalxs(g)
+                  cmfd%diffcof(ix,jy,kz,g) = mat(matid)%diffcoef(g)
+
+                  ! loop around outgoing energy groups 
+                  ELOOP: do h = 1,ng
+
+                    ! get vector h-->g index
+                    hg_idx = g + ng*(h - 1)
+                    cmfd%scattxs(ix,jy,kz,h,g) = mat(matid)%scattxs(hg_idx)
+                    cmfd%nfissxs(ix,jy,kz,h,g) = mat(matid)%nfissxs(hg_idx)
+
+                  end do ELOOP
+
+                end do XXLOOP
+
+              end do YYLOOP
+
+            end do ZZLOOP
 
           end do XLOOP
 
@@ -130,19 +175,37 @@ contains
     else if (associated(geometry%dx)) then
 
       ! loop through to get nonuniform dimensions
-      ZLOOP2: do k = 1,nz
+      ZLOOP2: do k = 1,nnz
 
-        YLOOP2: do j = 1,ny
+        YLOOP2: do j = 1,nny
 
-          XLOOP2: do i = 1,nx
+          XLOOP2: do i = 1,nnx
 
             ! get vector idx for dimension 
             dim_idx = get_matrix_idx(i,j,k,1,nx,ny,nz)
 
-            ! record dimension
-            cmfd%hxyz(i,j,k,1) = geometry%dx(dim_idx)
-            cmfd%hxyz(i,j,k,2) = geometry%dy(dim_idx)
-            cmfd%hxyz(i,j,k,3) = geometry%dz(dim_idx)
+            ! record to core map
+            ZZLOOP2: do kk = 1,zgrid(nnz)
+
+              YYLOOP2: do jj = 1,ygrid(nny)
+
+                XXLOOP2: do ii = 1,xgrid(nnx)
+
+                  ! compute shifted indices
+                  ix = sum(xgrid(1:nnx-1)) + ii
+                  jy = sum(ygrid(1:nny-1)) + jj
+                  kz = sum(zgrid(1:nnz-1)) + kk
+
+                  ! record dimension
+                  cmfd%hxyz(ix,jy,kz,1) = geometry%dx(dim_idx)/xgrid(nnx)
+                  cmfd%hxyz(ix,jy,kz,2) = geometry%dy(dim_idx)/ygrid(nny)
+                  cmfd%hxyz(ix,jy,kz,3) = geometry%dz(dim_idx)/zgrid(nnz)
+
+                end do XXLOOP2
+
+              end do YYLOOP2
+
+            end do ZZLOOP2
 
           end do XLOOP2
 
