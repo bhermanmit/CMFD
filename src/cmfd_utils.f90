@@ -120,9 +120,10 @@ contains
                 XXLOOP: do ii = 1,xgrid(nnx)
 
                   ! compute shifted indices
-                  ix = sum(xgrid(1:nnx-1)) + ii
-                  jy = sum(ygrid(1:nny-1)) + jj
-                  kz = sum(zgrid(1:nnz-1)) + kk
+                  ix = sum(xgrid(1:i)) - xgrid(i) + ii
+                  jy = sum(ygrid(1:j)) - ygrid(j) + jj
+                  kz = sum(zgrid(1:k)) - zgrid(k) + kk
+                  print *,ix,sum(xgrid(1:i)),xgrid(i)
 
                   ! record in object
                   cmfd%coremap(ix,jy,kz) = matid
@@ -181,9 +182,6 @@ contains
 
           XLOOP2: do i = 1,nnx
 
-            ! get vector idx for dimension 
-            dim_idx = get_matrix_idx(i,j,k,1,nx,ny,nz)
-
             ! record to core map
             ZZLOOP2: do kk = 1,zgrid(nnz)
 
@@ -192,14 +190,14 @@ contains
                 XXLOOP2: do ii = 1,xgrid(nnx)
 
                   ! compute shifted indices
-                  ix = sum(xgrid(1:nnx-1)) + ii
-                  jy = sum(ygrid(1:nny-1)) + jj
-                  kz = sum(zgrid(1:nnz-1)) + kk
+                  ix = sum(xgrid(1:i)) - xgrid(i) + ii
+                  jy = sum(ygrid(1:j)) - ygrid(j) + jj
+                  kz = sum(zgrid(1:k)) - zgrid(k) + kk
 
                   ! record dimension
-                  cmfd%hxyz(ix,jy,kz,1) = geometry%dx(dim_idx)/xgrid(nnx)
-                  cmfd%hxyz(ix,jy,kz,2) = geometry%dy(dim_idx)/ygrid(nny)
-                  cmfd%hxyz(ix,jy,kz,3) = geometry%dz(dim_idx)/zgrid(nnz)
+                  cmfd%hxyz(ix,jy,kz,1) = geometry%dx(i)/xgrid(nnx)
+                  cmfd%hxyz(ix,jy,kz,2) = geometry%dy(j)/ygrid(nny)
+                  cmfd%hxyz(ix,jy,kz,3) = geometry%dz(k)/zgrid(nnz)
 
                 end do XXLOOP2
 
