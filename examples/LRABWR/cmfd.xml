@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cmfd>
+
+<!-- Definition of Geometry -->
+  <geometry>
+    <nx>6</nx>
+    <ny>6</ny>
+    <nz>1</nz>
+    <ng>2</ng>
+    <mesh>
+         5 5 5 5 5 5
+         3 3 3 5 5 5
+         3 3 3 4 5 5
+         2 1 2 3 3 5
+         1 1 1 3 3 5
+         2 1 2 3 3 5 
+    </mesh>
+    <xgrid>15 60 30 15 15 30</xgrid>
+    <ygrid>15 60 30 15 15 30</ygrid>
+    <zgrid>1</zgrid>
+    <dx>15.0 60.0 30.0 15.0 15.0 30.0</dx>
+    <dy>15.0 60.0 30.0 15.0 15.0 30.0</dy>
+    <dz>0.1</dz>
+    <bc> 0.0 1.0 0.0 1.0 1.0 1.0 </bc>
+  </geometry>
+
+<!-- Defition of Materials -->
+  <mat uid="1">
+    <totalxs>0.1 0.5</totalxs>
+    <scattxs>0.066418 0.02533 0.0 0.3997</scattxs>
+    <nfissxs>0.004602 0.0 0.1091 0.0</nfissxs>
+    <diffcoef>1.255 0.211</diffcoef>
+  </mat>
+  <mat uid="2">
+    <totalxs>0.1 0.5</totalxs>
+    <scattxs>0.065149 0.02767 0.0 0.42953</scattxs>
+    <nfissxs>0.004609 0.0 0.08675 0.0</nfissxs>
+    <diffcoef>1.268 0.1902</diffcoef>
+  </mat>
+  <mat uid="3">
+    <totalxs>0.1 0.5</totalxs>
+    <scattxs>0.065828 0.02617 0.0 0.41656</scattxs>
+    <nfissxs>0.004663 0.0 0.1021 0.0</nfissxs>
+    <diffcoef>1.259 0.2091</diffcoef>
+  </mat>
+  <mat uid="4">
+    <totalxs>0.1 0.5</totalxs>
+    <scattxs>0.091998 0.02617 0.0 0.426676</scattxs>
+    <nfissxs>0.004663 0.0 0.1021 0.0</nfissxs>
+    <diffcoef>1.259 0.2091</diffcoef>
+  </mat>
+  <mat uid="5">
+    <totalxs>0.1 0.5</totalxs>
+    <scattxs>0.0993966 0.04754 0.0 0.48089</scattxs>
+    <nfissxs>0.0 0.0 0.0 0.0</nfissxs>
+    <diffcoef>1.257 0.1592</diffcoef>
+  </mat>
+
+</cmfd>
