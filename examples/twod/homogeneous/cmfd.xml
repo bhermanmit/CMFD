@@ -6,25 +6,33 @@
     <nx>1</nx>
     <ny>1</ny>
     <nz>1</nz>
-    <ng>1</ng>
+    <ng>3</ng>
     <mesh>
           1
     </mesh>
-    <xgrid>20</xgrid>
-    <ygrid>20</ygrid>
+    <xgrid>4</xgrid>
+    <ygrid>4</ygrid>
     <zgrid>1</zgrid>
-    <dx>10.0</dx>
-    <dy>10.0</dy>
+    <dx>160.0</dx>
+    <dy>140.0</dy>
     <dz>0.1</dz>
     <bc> 0.0 0.0 0.0 0.0 1.0 1.0 </bc>
   </geometry>
 
 <!-- Defition of Materials -->
   <mat uid="1">
-    <totalxs>1.0</totxs>
-    <scattxs>0.5</scattxs>
-    <nfissxs>0.48</nfissxs>
-    <diffcoef>0.3</diffcoef>
+    <totalxs>0.13046 0.10706 0.106316</totxs>
+    <scattxs>
+             0.1000  0.02578 0.0005164 
+             0.0000  0.1000  0.0047050
+             0.0000  0.0000  0.1000000
+    </scattxs>
+    <nfissxs>
+             0.0083250120 0.0023596680 0.000075320
+             0.0025601733 0.0007256637 0.000023163
+             0.0033779742 0.0009574638 0.000030562
+    </nfissxs>
+    <diffcoef>2.11 1.29 0.86</diffcoef>
   </mat>
 
 </cmfd>

@@ -512,6 +512,8 @@ contains
 
           XLOOP: do i = 1,nx
 
+            print *, "Setting up (i,j,k,g) cell:",i,j,k,g
+
             ! get matrix index of cell
             cell_mat_idx = get_matrix_idx(i,j,k,g,nx,ny,nz)
 
@@ -568,6 +570,7 @@ contains
 
             ! calculate loss of neutrons
             val = jnet + totxs - scattxsgg
+            print *,totxs-scattxsgg
 
             ! record diagonal term
             call MatSetValue(M,cell_mat_idx-1,cell_mat_idx-1,val,INSERT_VALUES,&

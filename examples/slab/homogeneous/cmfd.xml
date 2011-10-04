@@ -3,17 +3,17 @@
 
 <!-- Definition of Geometry -->
   <geometry>
-    <nx>2</nx>
+    <nx>1</nx>
     <ny>1</ny>
     <nz>1</nz>
     <ng>1</ng>
     <mesh>
-         1 2
+         1
     </mesh>
-    <xgrid>5 5</xgrid>
-    <ygrid>1</ygrid>
+    <xgrid>10</xgrid>
+    <ygrid>2</ygrid>
     <zgrid>1</zgrid>
-    <dx>5.0 5.0</dx>
+    <dx>10.0</dx>
     <dy>0.1</dy>
     <dz>0.1</dz>
     <bc> 0.0 0.0 1.0 1.0 1.0 1.0 </bc>
@@ -26,12 +26,5 @@
     <nfissxs>0.48</nfissxs>
     <diffcoef>0.3</diffcoef>
   </mat>
-  <mat uid="2">
-    <totalxs>1.0</totalxs>
-    <scattxs>0.5</scattxs>
-    <nfissxs>0.3</nfissxs>
-    <diffcoef>0.3</diffcoef>
-  </mat>
-
 
 </cmfd>

@@ -219,6 +219,15 @@ contains
 
     end if
 
+    write(200,*) cmfd%coremap
+
+!   print *,"Total:",cmfd%totalxs(45,45,1,:)
+!   print *,"Coremap:",cmfd%coremap(45,45,1)
+!   print *,"Scattering:",cmfd%scattxs(45,45,1,:,:)
+!   print *,"NuFission:",cmfd%nfissxs(45,45,1,:,:)
+!   print *,"Diffusion Coef:",cmfd%diffcof(45,45,1,:)
+!   print *,"Dimensions:",cmfd%hxyz(45,45,1,:)
+
     ! echo input
 !   print *, 'Dimensions:'
 !   print *,cmfd%indices
