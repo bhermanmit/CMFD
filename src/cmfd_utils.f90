@@ -107,23 +107,22 @@ contains
           XLOOP: do i = 1,nnx
 
             ! get vector idx for core map
-            map_idx = get_matrix_idx(i,j,k,1,nx,ny,nz)
+            map_idx = get_matrix_idx(i,j,k,1,nnx,nny,nnz)
 
             ! extract material identifier
             matid = geometry%mesh(map_idx)
 
             ! record to core map
-            ZZLOOP: do kk = 1,zgrid(nnz)
+            ZZLOOP: do kk = 1,zgrid(k)
 
-              YYLOOP: do jj = 1,ygrid(nny)
+              YYLOOP: do jj = 1,ygrid(j)
 
-                XXLOOP: do ii = 1,xgrid(nnx)
+                XXLOOP: do ii = 1,xgrid(i)
 
                   ! compute shifted indices
                   ix = sum(xgrid(1:i)) - xgrid(i) + ii
                   jy = sum(ygrid(1:j)) - ygrid(j) + jj
                   kz = sum(zgrid(1:k)) - zgrid(k) + kk
-                  print *,ix,sum(xgrid(1:i)),xgrid(i)
 
                   ! record in object
                   cmfd%coremap(ix,jy,kz) = matid
@@ -184,11 +183,11 @@ contains
           XLOOP2: do i = 1,nnx
 
             ! record to core map
-            ZZLOOP2: do kk = 1,zgrid(nnz)
+            ZZLOOP2: do kk = 1,zgrid(k)
 
-              YYLOOP2: do jj = 1,ygrid(nny)
+              YYLOOP2: do jj = 1,ygrid(j)
 
-                XXLOOP2: do ii = 1,xgrid(nnx)
+                XXLOOP2: do ii = 1,xgrid(i)
 
                   ! compute shifted indices
                   ix = sum(xgrid(1:i)) - xgrid(i) + ii
@@ -196,9 +195,9 @@ contains
                   kz = sum(zgrid(1:k)) - zgrid(k) + kk
 
                   ! record dimension
-                  cmfd%hxyz(ix,jy,kz,1) = geometry%dx(i)/xgrid(nnx)
-                  cmfd%hxyz(ix,jy,kz,2) = geometry%dy(j)/ygrid(nny)
-                  cmfd%hxyz(ix,jy,kz,3) = geometry%dz(k)/zgrid(nnz)
+                  cmfd%hxyz(ix,jy,kz,1) = geometry%dx(i)/xgrid(i)
+                  cmfd%hxyz(ix,jy,kz,2) = geometry%dy(j)/ygrid(j)
+                  cmfd%hxyz(ix,jy,kz,3) = geometry%dz(k)/zgrid(k)
 
                 end do XXLOOP2
 
@@ -221,26 +220,26 @@ contains
     end if
 
     ! echo input
-    print *, 'Dimensions:'
-    print *,cmfd%indices
-    print *, 'CORE MAP:'
-    print *,cmfd%coremap
-    print *, 'TOTAL XS:'
-    print *,cmfd%totalxs
-    print *, 'SCATTERING XS:'
-    print *,cmfd%scattxs
-    print *, 'Nu-FISSION XS:'
-    print *,cmfd%nfissxs
-    print *, 'DIFFUSION COEFFICIENT:'
-    print *,cmfd%diffcof
-    print *, 'BOUNDARY CONDITIONS:'
-    print *,cmfd%albedo
-    print *, 'CORE CELL DIMENSIONS X:'
-    print *,cmfd%hxyz(:,:,:,1)
-    print *, 'CORE CELL DIMENSIONS Y:'
-    print *,cmfd%hxyz(:,:,:,2)
-    print *, 'CORE CELL DIMENSIONS Z:'
-    print *,cmfd%hxyz(:,:,:,3)
+!   print *, 'Dimensions:'
+!   print *,cmfd%indices
+!   print *, 'CORE MAP:'
+!   print *,cmfd%coremap
+!   print *, 'TOTAL XS:'
+!   print *,minval(cmfd%totalxs),maxval(cmfd%totalxs)
+!   print *, 'SCATTERING XS:'
+!   print *,minval(cmfd%scattxs),maxval(cmfd%scattxs)
+!   print *, 'Nu-FISSION XS:'
+!   print *,minval(cmfd%nfissxs),maxval(cmfd%nfissxs)
+!   print *, 'DIFFUSION COEFFICIENT:'
+!   print *,minval(cmfd%diffcof),maxval(cmfd%diffcof)
+!   print *, 'BOUNDARY CONDITIONS:'
+!   print *,cmfd%albedo
+!   print *, 'CORE CELL DIMENSIONS X:'
+!   print *,cmfd%hxyz(:,:,:,1)
+!   print *, 'CORE CELL DIMENSIONS Y:'
+!   print *,cmfd%hxyz(:,:,:,2)
+!   print *, 'CORE CELL DIMENSIONS Z:'
+!   print *,cmfd%hxyz(:,:,:,3)
 
   end subroutine read_input
 

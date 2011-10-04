@@ -16,7 +16,7 @@ include OBJECTS
 #===============================================================================
 
 # F90FLAGS = -I${PETSC_DIR}/include/finclude -I../lib/gfortran -ffree-form
-  F90FLAGS = -I../lib/gfortran -ffree-form
+  F90FLAGS = -I../lib/gfortran -ffree-form -fbacktrace -g -fbounds-check
   LDFLAGS = -L../lib/gfortran -lxmlparse
 
 #===============================================================================

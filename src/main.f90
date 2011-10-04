@@ -6,8 +6,11 @@ program main
 
   implicit none
 
+  print *,"Reading input..."
   call read_input()
+  print *,"Computing coupling coefficient"
   call compute_diffcoef()
+  print *,"Solving linear system"
   call cmfd_solver()
 
 end program main

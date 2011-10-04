@@ -278,13 +278,14 @@ contains
     ! initialize matrices and vectors
     call init_data(M,F,phi_n,phi_o,S_n,S_o,k_n,k_o,krylov,prec)
 
-
+    print *,"Setting up matrices"
     ! set up M loss matrix
     call loss_matrix(M)
 
     ! set up F production matrix
     call prod_matrix(F)
 
+    print *,"Beginning power iteration"
     ! begin power iteration
     do i = 1,10000
 
@@ -294,6 +295,7 @@ contains
       ! normalize source vector
       call VecScale(S_o,one/k_o,ierr)
 
+      print *,"Performing Krylov solve"
       ! compute new flux vector
       call KSPSetOperators(krylov, M, M, SAME_NONZERO_PATTERN, ierr)
       call KSPSolve(krylov,S_o,phi_n,ierr)
@@ -318,7 +320,7 @@ contains
       ! record old values
       call VecCopy(phi_n,phi_o,ierr)
       k_o = k_n
-
+      print *,"keff:",k_n
     end do
 
     ! compute source pdf and record in cmfd object
