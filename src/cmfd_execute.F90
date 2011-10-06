@@ -290,7 +290,7 @@ use timing, only: timer_start, timer_stop
 
     ! set up F production matrix
     call prod_matrix(F)
-    STOP
+
     print *,"Beginning power iteration"
     ! begin power iteration
     do i = 1,10000
@@ -374,10 +374,12 @@ use timing, only: timer_start, timer_stop
     integer             :: ny          ! maximum number of y cells
     integer             :: nz          ! maximum number of z cells
     integer             :: ng          ! maximum number of groups
-    integer             :: n_corner    ! number of corner cells
-    integer             :: n_edge      ! number of edge cells
-    integer             :: n_side      ! number of side cells
-    integer             :: n_int       ! number of interior cells 
+!   integer             :: n_corner    ! number of corner cells
+!   integer             :: n_edge      ! number of edge cells
+!   integer             :: n_side      ! number of side cells
+!   integer             :: n_int       ! number of interior cells 
+    integer             :: nzM         ! max number of nonzeros in a row for M
+    integer             :: nzF         ! max number of nonzeros in a row for F
     real(8)             :: guess=1.0   ! initial guess
     real(8)          :: ktol=1.e-7  ! krylov tolerance
 
@@ -392,27 +394,32 @@ use timing, only: timer_start, timer_stop
     n = nx*ny*nz*ng
 
     ! calculate # of types of cells
-    n_corner = 8
-    n_edge = 4*(nx + ny + nz) - 24
-    n_side = 2*(nx*ny + ny*nz + nz*nx) - 8*(nx + ny + nz) + 24
-    n_int = nx*ny*nz - n_side - n_edge - n_corner
+!   n_corner = 8
+!   n_edge = 4*(nx + ny + nz) - 24
+!   n_side = 2*(nx*ny + ny*nz + nz*nx) - 8*(nx + ny + nz) + 24
+!   n_int = nx*ny*nz - n_side - n_edge - n_corner
 
     ! calculate number of non-zeros in each matrix
-    nz_M = ng*(nx*ny*nz + n_int*6 + n_side*5 + n_edge*4 + n_corner*3) +        &
-   &       (ng**2 -ng)*nx*ny*nz
-    nz_F = ng**2*nx*ny*nz
+!   nz_M = ng*(nx*ny*nz + n_int*6 + n_side*5 + n_edge*4 + n_corner*3) +        &
+!  &       (ng**2 -ng)*nx*ny*nz
+!   nz_F = ng**2*nx*ny*nz
+
+    ! maximum number of nonzeros in each matrix
+    nzM = 7+ng-1
+    nzF = ng
 
     ! set up loss matrix
-    call MatCreate(PETSC_COMM_WORLD,M,ierr)
-    call MatSetType(M,MATAIJ,ierr)
-    call MatSetSizes(M,PETSC_DECIDE,PETSC_DECIDE,n,n,ierr)
-    call MatSetFromOptions(M,ierr)
+    call MatCreateSeqAIJ(PETSC_COMM_SELF,n,n,nzM,PETSC_NULL_INTEGER,M,ierr)
+    call MatSetOption(M,MAT_NEW_NONZERO_LOCATIONS,PETSC_TRUE,ierr)
+    call MatSetOption(M,MAT_IGNORE_ZERO_ENTRIES,PETSC_TRUE,ierr)
+    call MatSetOption(M,MAT_USE_HASH_TABLE,PETSC_TRUE,ierr)
 
     ! set up production matrix
-    call MatCreate(PETSC_COMM_WORLD,F,ierr)
-    call MatSetType(F,MATAIJ,ierr)
-    call MatSetSizes(F,PETSC_DECIDE,PETSC_DECIDE,n,n,ierr)
-    call MatSetFromOptions(F,ierr)
+    call MatCreateSeqAIJ(PETSC_COMM_SELF,n,n,nzF,PETSC_NULL_INTEGER,F,ierr)
+    call MatSetOption(F,MAT_NEW_NONZERO_LOCATIONS,PETSC_TRUE,ierr)
+    call MatSetOption(F,MAT_IGNORE_ZERO_ENTRIES,PETSC_TRUE,ierr)
+    call MatSetOption(F,MAT_USE_HASH_TABLE,PETSC_TRUE,ierr)
+
 
     ! set up flux vectors
     call VecCreate(PETSC_COMM_WORLD,phi_n,ierr)
@@ -463,37 +470,41 @@ use timing, only: timer_start, timer_stop
     Mat    :: M   ! loss matrix
 
     ! local variables
-    integer :: nx                 ! maximum number of cells in x direction
-    integer :: ny                 ! maximum number of cells in y direction
-    integer :: nz                 ! maximum number of cells in z direction
-    integer :: ng                 ! maximum number of energy groups
-    integer :: nxyz(3,2)          ! single vector containing boundary locations
-    integer :: i                  ! iteration counter for x
-    integer :: j                  ! iteration counter for y
-    integer :: k                  ! iteration counter for z
-    integer :: g                  ! iteration counter for groups
-    integer :: l                  ! iteration counter for leakages
-    integer :: h                  ! energy group when doing scattering
-    integer :: cell_mat_idx       ! matrix index of current cell
-    integer :: neig_mat_idx       ! matrix index of neighbor cell
-    integer :: scatt_mat_idx      ! matrix index for h-->g scattering terms
-    integer :: bound(6)           ! vector for comparing when looking for boundaries
-    integer :: xyz_idx            ! index for determining if x,y or z leakage
-    integer :: dir_idx            ! index for determining - or + face of cell
-    integer :: neig_idx(3)        ! spatial indices of neighbour
-    integer :: shift_idx          ! parameter to shift index by +1 or -1
-    integer :: ierr               ! Persc error code
-    real(8) :: totxs              ! total macro cross section
-    real(8) :: scattxsgg          ! scattering macro cross section g-->g
-    real(8) :: scattxshg          ! scattering macro cross section h-->g
-    real(8) :: dtilda(6)          ! finite difference coupling parameter
-    real(8) :: dhat(6)            ! nonlinear coupling parameter
-    real(8) :: hxyz(3)            ! cell lengths in each direction
-    real(8) :: jn                 ! direction dependent leakage coeff to neig
-    real(8) :: jo(6)              ! leakage coeff in front of cell flux
-    real(8) :: jnet               ! net leakage from jo
-    real(8) :: val                ! temporary variable before saving to matrix 
-    PetscViewer :: viewer         ! viewer to write out matrix to binary file
+    integer :: nx                   ! maximum number of cells in x direction
+    integer :: ny                   ! maximum number of cells in y direction
+    integer :: nz                   ! maximum number of cells in z direction
+    integer :: ng                   ! maximum number of energy groups
+    integer :: nxyz(3,2)            ! single vector containing bound. locations
+    integer :: i                    ! iteration counter for x
+    integer :: j                    ! iteration counter for y
+    integer :: k                    ! iteration counter for z
+    integer :: g                    ! iteration counter for groups
+    integer :: l                    ! iteration counter for leakages
+    integer :: h                    ! energy group when doing scattering
+    integer :: cell_mat_idx         ! matrix index of current cell
+    integer :: neig_mat_idx         ! matrix index of neighbor cell
+    integer :: scatt_mat_idx        ! matrix index for h-->g scattering terms
+    integer :: bound(6)             ! vector for comparing when looking for bound
+    integer :: xyz_idx              ! index for determining if x,y or z leakage
+    integer :: dir_idx              ! index for determining - or + face of cell
+    integer :: neig_idx(3)          ! spatial indices of neighbour
+    integer :: shift_idx            ! parameter to shift index by +1 or -1
+    integer :: ierr                 ! Persc error code
+    integer :: kount                ! integer for counting values in vector
+!   integer, allocatable :: iM(:)   ! index vector for i
+!   integer, allocatable :: jM(:)   ! index vector for j
+    real(8) :: totxs                ! total macro cross section
+    real(8) :: scattxsgg            ! scattering macro cross section g-->g
+    real(8) :: scattxshg            ! scattering macro cross section h-->g
+    real(8) :: dtilda(6)            ! finite difference coupling parameter
+    real(8) :: dhat(6)              ! nonlinear coupling parameter
+    real(8) :: hxyz(3)              ! cell lengths in each direction
+    real(8) :: jn                   ! direction dependent leakage coeff to neig
+    real(8) :: jo(6)                ! leakage coeff in front of cell flux
+    real(8) :: jnet                 ! net leakage from jo
+!   real(8), allocatable :: val(:)  ! temporary variable before saving to matrix 
+    real(8) :: val
+    PetscViewer :: viewer           ! viewer to write out matrix to binary file
 
     ! initialize matrix for building
     call MatAssemblyBegin(M,MAT_FLUSH_ASSEMBLY,ierr)
@@ -503,6 +514,11 @@ use timing, only: timer_start, timer_stop
     ny = cmfd%indices(2)
     nz = cmfd%indices(3)
     ng = cmfd%indices(4)
+
+    ! allocate index vectors for storing values for matrix
+!   allocate(iM(7 + ng - 1))
+!   allocate(jM(7 + ng - 1))
+!   allocate(val(7 + ng - 1))
 
     ! create single vector of these indices for boundary calculation
     nxyz(1,:) = (/1,nx/)
@@ -517,6 +533,12 @@ use timing, only: timer_start, timer_stop
         YLOOP: do j = 1,ny
 
           XLOOP: do i = 1,nx
+
+            ! reset counter and vectors
+!           kount = 0
+!           iM = 0
+!           jM = 0
+!           val = 0.0
 
             ! get matrix index of cell
             cell_mat_idx = get_matrix_idx(i,j,k,g,nx,ny,nz)
@@ -554,7 +576,11 @@ use timing, only: timer_start, timer_stop
                 neig_mat_idx = get_matrix_idx(neig_idx(1),neig_idx(2),         &
                &                              neig_idx(3),g,nx,ny,nz) 
 
-                ! compute value to bank
+                ! compute value and record to bank
+!               iM(kount) = cell_mat_idx-1
+!               jM(kount) = neig_mat_idx-1
+!               val(kount) = jn/hxyz(xyz_idx)
+!               kount = kount + 1
                 val = jn/hxyz(xyz_idx)
 
                 ! record value in matrix
@@ -573,6 +599,10 @@ use timing, only: timer_start, timer_stop
            &       (jo(6) - jo(5))/hxyz(3) 
 
             ! calculate loss of neutrons
+!           iM(kount) = cell_mat_idx - 1
+!           jM(kount) = cell_mat_idx -1
+!           val(kount) = jnet + totxs - scattxsgg
+!           kount = kount + 1
             val = jnet + totxs - scattxsgg
 
             ! record diagonal term
@@ -594,11 +624,20 @@ use timing, only: timer_start, timer_stop
               scattxshg = cmfd%scattxs(i,j,k,h,g)
 
               ! record value in matrix (negate it)
+!             iM(kount) = cell_mat_idx -1
+!             jM(kount) = scatt_mat_idx - 1
+!             val(kount) = -scattxshg
+!             kount = kount + 1
               val = -scattxshg
+
               call MatSetValue(M,cell_mat_idx-1,scatt_mat_idx-1,val,            &
              &                 INSERT_VALUES,ierr)
 
             end do SCATTR
+
+            ! set vectors to matrix
+!           print *, cell_mat_idx-1
+!           call MatSetValues(M,1,cell_mat_idx-1,7+ng-1,jM,val,INSERT_VALUES,ierr)
 
           end do XLOOP
 
@@ -616,6 +655,11 @@ use timing, only: timer_start, timer_stop
                                viewer,ierr)
     call MatView(M,viewer,ierr)
     call PetscViewerDestroy(viewer,ierr)
+
+    ! deallocate vectors
+!   deallocate(iM)
+!   deallocate(jM)
+!   deallocate(val)
 
   end subroutine loss_matrix
 
