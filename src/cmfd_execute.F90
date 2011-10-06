@@ -290,7 +290,7 @@ use timing, only: timer_start, timer_stop
 
     ! set up F production matrix
     call prod_matrix(F)
-
+    STOP
     print *,"Beginning power iteration"
     ! begin power iteration
     do i = 1,10000
