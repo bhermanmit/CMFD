@@ -319,7 +319,7 @@ use timing, only: timer_start, timer_stop
       call VecScale(S_o,k_o,ierr)
 
       ! check convergence
-      call convergence(phi_n,phi_o,S_n,S_o,k_o,k_n,iconv)
+      call convergence(S_n,S_o,k_o,k_n,iconv)
 
       ! to break or not to break
       if (iconv) exit
@@ -705,7 +705,7 @@ use timing, only: timer_start, timer_stop
 ! CONVERGENCE checks the convergence of eigenvalue, eigenvector and source
 !===============================================================================
 
-  subroutine convergence(phi_n,phi_o,S_n,S_o,k_o,k_n,iconv)
+  subroutine convergence(S_n,S_o,k_o,k_n,iconv)
 
 #include <finclude/petsc.h90>
 
@@ -719,15 +719,13 @@ use timing, only: timer_start, timer_stop
     logical     :: iconv  ! is the problem converged
 
     ! local variables
-    Vec         :: phi_v          ! flux temp vector 
-    Vec         :: S_v            ! source temp vector
     real(8)     :: ktol = 1.e-6   ! tolerance on keff
-    real(8)     :: ftol = 1.e-4   ! tolerance on flux
     real(8)     :: stol = 1.e-5   ! tolerance on source
     real(8)     :: kerr           ! error in keff
-    real(8)     :: ferr           ! error in flux
     real(8)     :: serr           ! error in source
     real(8)     :: one = -1.0     ! one
+    real(8)     :: norm_n         ! L2 norm of new source
+    real(8)     :: norm_o         ! L2 norm of old source
     integer     :: floc           ! location of max error in flux
     integer     :: sloc           ! location of max error in source
     integer     :: ierr           ! petsc error code
@@ -736,38 +734,18 @@ use timing, only: timer_start, timer_stop
     ! reset convergence flag
     iconv = .FALSE.
 
-    ! initialize temp vectors
-    call VecGetLocalSize(phi_n,n,ierr)
-    call VecCreate(PETSC_COMM_WORLD,phi_v,ierr)
-    call VecSetSizes(phi_v,PETSC_DECIDE,n,ierr)
-    call VecSetFromOptions(phi_v,ierr)
-    call VecCreate(PETSC_COMM_WORLD,S_v,ierr)
-    call VecSetSizes(S_v,PETSC_DECIDE,n,ierr)
-    call VecSetFromOptions(S_v,ierr)
-
     ! calculate error in keff
     kerr = abs(k_o - k_n)/k_n
 
-    ! calculate max error in flux
-    call VecWAXPY(phi_v,one,phi_n,phi_o,ierr)
-    call VecPointwiseDivide(phi_v,phi_v,phi_n,ierr)
-    call VecAbs(phi_v,ierr)
-    call VecMax(phi_v,floc,ferr,ierr)
-
     ! calculate max error in source
-    call VecWAXPY(S_v,one,S_n,S_o,ierr)
-    call VecPointwiseDivide(S_v,S_v,S_n,ierr)
-    call VecAbs(S_v,ierr)
-    call VecMax(S_v,sloc,serr,ierr)
+    call VecNorm(S_n,NORM_2,norm_n,ierr)
+    call VecNorm(S_o,NORM_2,norm_o,ierr)
+    serr = abs(norm_n-norm_o)/norm_n
 
     ! check for convergence
-    if(kerr < ktol .and. ferr < ftol .and. serr < stol) iconv = .TRUE.
+    if(kerr < ktol .and. serr < stol) iconv = .TRUE.
 
-    ! destroy vectors
-    call VecDestroy(phi_v,ierr)
-    call VecDestroy(S_v,ierr)
-
-    print *,k_n,kerr,ferr,serr
+    print *,k_n,kerr,serr
  
   end subroutine convergence
 
