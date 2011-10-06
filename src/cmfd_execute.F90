@@ -374,10 +374,6 @@ use timing, only: timer_start, timer_stop
     integer             :: ny          ! maximum number of y cells
     integer             :: nz          ! maximum number of z cells
     integer             :: ng          ! maximum number of groups
-!   integer             :: n_corner    ! number of corner cells
-!   integer             :: n_edge      ! number of edge cells
-!   integer             :: n_side      ! number of side cells
-!   integer             :: n_int       ! number of interior cells 
     integer             :: nzM         ! max number of nonzeros in a row for M
     integer             :: nzF         ! max number of nonzeros in a row for F
     real(8)             :: guess=1.0   ! initial guess
@@ -392,17 +388,6 @@ use timing, only: timer_start, timer_stop
 
     ! calculate dimensions of matrix
     n = nx*ny*nz*ng
-
-    ! calculate # of types of cells
-!   n_corner = 8
-!   n_edge = 4*(nx + ny + nz) - 24
-!   n_side = 2*(nx*ny + ny*nz + nz*nx) - 8*(nx + ny + nz) + 24
-!   n_int = nx*ny*nz - n_side - n_edge - n_corner
-
-    ! calculate number of non-zeros in each matrix
-!   nz_M = ng*(nx*ny*nz + n_int*6 + n_side*5 + n_edge*4 + n_corner*3) +        &
-!  &       (ng**2 -ng)*nx*ny*nz
-!   nz_F = ng**2*nx*ny*nz
 
     ! maximum number of nonzeros in each matrix
     nzM = 7+ng-1
@@ -491,8 +476,6 @@ use timing, only: timer_start, timer_stop
     integer :: shift_idx            ! parameter to shift index by +1 or -1
     integer :: ierr                 ! Persc error code
     integer :: kount                ! integer for counting values in vector
-!   integer, allocatable :: iM(:)   ! index vector for i
-!   integer, allocatable :: jM(:)   ! index vector for j
     real(8) :: totxs                ! total macro cross section
     real(8) :: scattxsgg            ! scattering macro cross section g-->g
     real(8) :: scattxshg            ! scattering macro cross section h-->g
@@ -502,8 +485,7 @@ use timing, only: timer_start, timer_stop
     real(8) :: jn                   ! direction dependent leakage coeff to neig
     real(8) :: jo(6)                ! leakage coeff in front of cell flux
     real(8) :: jnet                 ! net leakage from jo
-!   real(8), allocatable :: val(:)  ! temporary variable before saving to matrix 
-    real(8) :: val
+    real(8) :: val                  ! temporary variable before saving to matrix 
     PetscViewer :: viewer           ! viewer to write out matrix to binary file
 
     ! initialize matrix for building
@@ -514,11 +496,6 @@ use timing, only: timer_start, timer_stop
     ny = cmfd%indices(2)
     nz = cmfd%indices(3)
     ng = cmfd%indices(4)
-
-    ! allocate index vectors for storing values for matrix
-!   allocate(iM(7 + ng - 1))
-!   allocate(jM(7 + ng - 1))
-!   allocate(val(7 + ng - 1))
 
     ! create single vector of these indices for boundary calculation
     nxyz(1,:) = (/1,nx/)
@@ -533,12 +510,6 @@ use timing, only: timer_start, timer_stop
         YLOOP: do j = 1,ny
 
           XLOOP: do i = 1,nx
-
-            ! reset counter and vectors
-!           kount = 0
-!           iM = 0
-!           jM = 0
-!           val = 0.0
 
             ! get matrix index of cell
             cell_mat_idx = get_matrix_idx(i,j,k,g,nx,ny,nz)
@@ -577,10 +548,6 @@ use timing, only: timer_start, timer_stop
                &                              neig_idx(3),g,nx,ny,nz) 
 
                 ! compute value and record to bank
-!               iM(kount) = cell_mat_idx-1
-!               jM(kount) = neig_mat_idx-1
-!               val(kount) = jn/hxyz(xyz_idx)
-!               kount = kount + 1
                 val = jn/hxyz(xyz_idx)
 
                 ! record value in matrix
@@ -599,10 +566,6 @@ use timing, only: timer_start, timer_stop
            &       (jo(6) - jo(5))/hxyz(3) 
 
             ! calculate loss of neutrons
-!           iM(kount) = cell_mat_idx - 1
-!           jM(kount) = cell_mat_idx -1
-!           val(kount) = jnet + totxs - scattxsgg
-!           kount = kount + 1
             val = jnet + totxs - scattxsgg
 
             ! record diagonal term
@@ -624,20 +587,12 @@ use timing, only: timer_start, timer_stop
               scattxshg = cmfd%scattxs(i,j,k,h,g)
 
               ! record value in matrix (negate it)
-!             iM(kount) = cell_mat_idx -1
-!             jM(kount) = scatt_mat_idx - 1
-!             val(kount) = -scattxshg
-!             kount = kount + 1
               val = -scattxshg
 
               call MatSetValue(M,cell_mat_idx-1,scatt_mat_idx-1,val,            &
              &                 INSERT_VALUES,ierr)
 
             end do SCATTR
-
-            ! set vectors to matrix
-!           print *, cell_mat_idx-1
-!           call MatSetValues(M,1,cell_mat_idx-1,7+ng-1,jM,val,INSERT_VALUES,ierr)
 
           end do XLOOP
 
@@ -655,11 +610,6 @@ use timing, only: timer_start, timer_stop
                                viewer,ierr)
     call MatView(M,viewer,ierr)
     call PetscViewerDestroy(viewer,ierr)
-
-    ! deallocate vectors
-!   deallocate(iM)
-!   deallocate(jM)
-!   deallocate(val)
 
   end subroutine loss_matrix
 
