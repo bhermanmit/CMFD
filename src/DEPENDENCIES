@@ -1,4 +1,5 @@
 global.o: cmfd_header.o
+global.o: timing.o
 
 main.o: global.o
 main.o: cmfd_execute.o
@@ -6,6 +7,9 @@ main.o: cmfd_utils.o
 
 cmfd_execute.o: cmfd_utils.o
 cmfd_execute.o: global.o 
+cmfd_execute.o: timing.o
 
 cmfd_utils.o: global.o
 cmfd_utils.o: xml_cmfd.o
+
+timing.o: constants.o

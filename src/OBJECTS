@@ -2,6 +2,8 @@ objects = \
 cmfd_header.o \
 cmfd_execute.o \
 cmfd_utils.o \
+constants.o \
 global.o \
 main.o \
+timing.o \
 xml_cmfd.o

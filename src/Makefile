@@ -16,7 +16,7 @@ include OBJECTS
 #===============================================================================
 
 # F90FLAGS = -I${PETSC_DIR}/include/finclude -I../lib/gfortran -ffree-form
-  F90FLAGS = -I../lib/gfortran -ffree-form -fbacktrace -g -fbounds-check
+  F90FLAGS = -I../lib/gfortran -ffree-form -fbacktrace -g -fbounds-check -pg
   LDFLAGS = -L../lib/gfortran -lxmlparse
 
 #===============================================================================
@@ -25,7 +25,7 @@ include OBJECTS
 
 all:	$(program)
 $(program): $(objects) chkopts
-	${FLINKER} $(objects) -o $@ $(LDFLAGS) ${PETSC_SYS_LIB}
+	${FLINKER} $(objects) -o $@ $(LDFLAGS) ${PETSC_SYS_LIB} -pg
 
 #===============================================================================
 # Rules

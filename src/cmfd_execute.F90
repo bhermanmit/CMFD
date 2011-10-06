@@ -248,6 +248,8 @@ contains
 
   subroutine cmfd_solver()
 
+use timing, only: timer_start, timer_stop
+
 #include <finclude/petsc.h90>
 
     Mat         :: M       ! loss matrix
@@ -279,8 +281,12 @@ contains
     call init_data(M,F,phi_n,phi_o,S_n,S_o,k_n,k_o,krylov,prec)
 
     print *,"Setting up matrices"
+
     ! set up M loss matrix
+    call timer_start(time_mat) 
     call loss_matrix(M)
+    call timer_stop(time_mat)
+    print *,"time is:",time_mat%elapsed
 
     ! set up F production matrix
     call prod_matrix(F)
@@ -512,8 +518,6 @@ contains
 
           XLOOP: do i = 1,nx
 
-            print *, "Setting up (i,j,k,g) cell:",i,j,k,g
-
             ! get matrix index of cell
             cell_mat_idx = get_matrix_idx(i,j,k,g,nx,ny,nz)
 
@@ -570,7 +574,6 @@ contains
 
             ! calculate loss of neutrons
             val = jnet + totxs - scattxsgg
-            print *,totxs-scattxsgg
 
             ! record diagonal term
             call MatSetValue(M,cell_mat_idx-1,cell_mat_idx-1,val,INSERT_VALUES,&
