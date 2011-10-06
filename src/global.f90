@@ -9,7 +9,8 @@ module global
   ! Main object
   type(cmfd_obj) :: cmfd
 
-  ! Timing object
+  ! Timing objects
   type(Timer) :: time_mat    ! timer for mat building
+  type(Timer) :: time_power  ! timer for power iteration
 
 end module global

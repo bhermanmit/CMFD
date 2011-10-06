@@ -278,20 +278,22 @@ use timing, only: timer_start, timer_stop
     call PetscInitialize(PETSC_NULL_CHARACTER,ierr)
 
     ! initialize matrices and vectors
+    print *,"Initializing and building matrices"
+    call timer_start(time_mat)
     call init_data(M,F,phi_n,phi_o,S_n,S_o,k_n,k_o,krylov,prec)
 
-    print *,"Setting up matrices"
-
     ! set up M loss matrix
-    call timer_start(time_mat) 
     call loss_matrix(M)
-    call timer_stop(time_mat)
-    print *,"time is:",time_mat%elapsed
 
     ! set up F production matrix
     call prod_matrix(F)
+    call timer_stop(time_mat)
+    print *,"Matrix building time (s):",time_mat%elapsed
 
+    ! begin timer for power iteration
     print *,"Beginning power iteration"
+    call timer_start(time_power)
+
     ! begin power iteration
     do i = 1,10000
 
@@ -301,7 +303,6 @@ use timing, only: timer_start, timer_stop
       ! normalize source vector
       call VecScale(S_o,one/k_o,ierr)
 
-      print *,"Performing Krylov solve"
       ! compute new flux vector
       call KSPSetOperators(krylov, M, M, SAME_NONZERO_PATTERN, ierr)
       call KSPSolve(krylov,S_o,phi_n,ierr)
@@ -326,8 +327,12 @@ use timing, only: timer_start, timer_stop
       ! record old values
       call VecCopy(phi_n,phi_o,ierr)
       k_o = k_n
-      print *,"keff:",k_n
+
     end do
+
+    ! end power iteration timer
+    call timer_stop(time_power)
+    print *,"Power iteration time (s):",time_power%elapsed
 
     ! compute source pdf and record in cmfd object
     call source_pdf(S_n)
@@ -377,7 +382,7 @@ use timing, only: timer_start, timer_stop
     integer             :: nzM         ! max number of nonzeros in a row for M
     integer             :: nzF         ! max number of nonzeros in a row for F
     real(8)             :: guess=1.0   ! initial guess
-    real(8)          :: ktol=1.e-7  ! krylov tolerance
+    real(8)             :: ktol=1.e-7  ! krylov tolerance
 
 
     ! get maximum number of cells in each direction
@@ -761,6 +766,8 @@ use timing, only: timer_start, timer_stop
     ! destroy vectors
     call VecDestroy(phi_v,ierr)
     call VecDestroy(S_v,ierr)
+
+    print *,k_n,kerr,ferr,serr
  
   end subroutine convergence
 
