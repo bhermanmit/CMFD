@@ -68,16 +68,16 @@ contains
     albedo = cmfd%albedo
 
     ! geting loop over group and spatial indices
-    GROUP:  do g = 1,ng
+    ZLOOP:  do k = 1,nz
 
-      ZLOOP: do k = 1,nz
+      YLOOP: do j = 1,ny
 
-        YLOOP: do j = 1,ny
+        XLOOP: do i = 1,nx
 
-          XLOOP: do i = 1,nx
+          GROUP: do g = 1,ng
 
             ! get cell data
-            cell_dc = cmfd%diffcof(i,j,k,g)
+            cell_dc = cmfd%diffcof(g,i,j,k)
             cell_hxyz = cmfd%hxyz(i,j,k,:)
 
 
@@ -106,7 +106,7 @@ contains
                 neig_idx(xyz_idx) = shift_idx + neig_idx(xyz_idx)
 
                 ! get neigbor cell data
-                neig_dc = cmfd%diffcof(neig_idx(1),neig_idx(2),neig_idx(3),g)
+                neig_dc = cmfd%diffcof(g,neig_idx(1),neig_idx(2),neig_idx(3))
                 neig_hxyz = cmfd%hxyz(neig_idx(1),neig_idx(2),neig_idx(3),:)
   
                 ! compute dtilda
@@ -116,17 +116,17 @@ contains
               end if
   
               ! record dtilda in cmfd object
-              cmfd%dtilda(i,j,k,g,l) = dtilda
+              cmfd%dtilda(l,g,i,j,k) = dtilda
 
             end do LEAK
 
-          end do XLOOP
+          end do GROUP 
 
-        end do YLOOP
+        end do XLOOP
 
-      end do ZLOOP
+      end do YLOOP
 
-    end do GROUP
+    end do ZLOOP 
 
   end subroutine compute_diffcoef
 
@@ -170,20 +170,20 @@ contains
     nxyz(3,:) = (/1,nz/)
 
     ! geting loop over group and spatial indices
-    GROUP:  do g = 1,ng
+    ZLOOP:  do k = 1,nz
 
-      ZLOOP: do k = 1,nz
+      YLOOP: do j = 1,ny
 
-        YLOOP: do j = 1,ny
+        XLOOP: do i = 1,nx
 
-          XLOOP: do i = 1,nx
+          GROUP: do g = 1,ng
 
             ! get cell data
-            cell_dtilda = cmfd%dtilda(i,j,k,g,:)
-            cell_flux = cmfd%flux(i,j,k,g)
-            current(1,:) = cmfd%currentX(i-1:i,j,k,g)
-            current(2,:) = cmfd%currentY(i,j-1:j,k,g)
-            current(3,:) = cmfd%currentZ(i,j,k-1:k,g)
+            cell_dtilda = cmfd%dtilda(:,g,i,j,k)
+            cell_flux = cmfd%flux(g,i,j,k)
+            current(1,:) = cmfd%currentX(g,i-1:i,j,k)
+            current(2,:) = cmfd%currentY(g,i,j-1:j,k)
+            current(3,:) = cmfd%currentZ(g,i,j,k-1:k)
 
 
             ! setup of vector to identify boundary conditions
@@ -220,17 +220,17 @@ contains
               end if
 
               ! record dtilda in cmfd object
-              cmfd%dhat(i,j,k,g,l) = dhat
+              cmfd%dhat(l,g,i,j,k) = dhat
 
             end do LEAK
 
-          end do XLOOP
+          end do GROUP 
 
-        end do YLOOP
+        end do XLOOP
 
-      end do ZLOOP
+      end do YLOOP
 
-    end do GROUP
+    end do ZLOOP 
 
   end subroutine compute_dhat
 
@@ -508,22 +508,22 @@ use timing, only: timer_start, timer_stop
     nxyz(3,:) = (/1,nz/)
 
     ! begin iteration loops
-    GROUP:  do g = 1,ng
+    ZLOOP:  do k = 1,nz
 
-      ZLOOP: do k = 1,nz
+      YLOOP: do j = 1,ny
 
-        YLOOP: do j = 1,ny
+        XLOOP: do i = 1,nx
 
-          XLOOP: do i = 1,nx
+          GROUP: do g = 1,ng
 
             ! get matrix index of cell
-            cell_mat_idx = get_matrix_idx(i,j,k,g,nx,ny,nz)
+            cell_mat_idx = get_matrix_idx(g,i,j,k,ng,nx,ny)
 
             ! retrieve cell data
-            totxs = cmfd%totalxs(i,j,k,g)
-            scattxsgg = cmfd%scattxs(i,j,k,g,g)
-            dtilda = cmfd%dtilda(i,j,k,g,:)
-            dhat = cmfd%dhat(i,j,k,g,:)
+            totxs = cmfd%totalxs(g,i,j,k)
+            scattxsgg = cmfd%scattxs(g,g,i,j,k)
+            dtilda = cmfd%dtilda(:,g,i,j,k)
+            dhat = cmfd%dhat(:,g,i,j,k)
             hxyz = cmfd%hxyz(i,j,k,:)
 
             ! create boundary vector 
@@ -549,8 +549,8 @@ use timing, only: timer_start, timer_stop
                 jn = -dtilda(l) + shift_idx*dhat(l)
 
                 ! get neighbor matrix index
-                neig_mat_idx = get_matrix_idx(neig_idx(1),neig_idx(2),         &
-               &                              neig_idx(3),g,nx,ny,nz) 
+                neig_mat_idx = get_matrix_idx(g,neig_idx(1),neig_idx(2),       &
+               &                              neig_idx(3),ng,nx,ny) 
 
                 ! compute value and record to bank
                 val = jn/hxyz(xyz_idx)
@@ -586,10 +586,10 @@ use timing, only: timer_start, timer_stop
               end if
 
               ! get matrix index of in-scatter
-              scatt_mat_idx = get_matrix_idx(i,j,k,h,nx,ny,nz)
+              scatt_mat_idx = get_matrix_idx(h,i,j,k,ng,nx,ny)
 
               ! get scattering macro xs
-              scattxshg = cmfd%scattxs(i,j,k,h,g)
+              scattxshg = cmfd%scattxs(h,g,i,j,k)
 
               ! record value in matrix (negate it)
               val = -scattxshg
@@ -599,13 +599,13 @@ use timing, only: timer_start, timer_stop
 
             end do SCATTR
 
-          end do XLOOP
+          end do GROUP 
 
-        end do YLOOP
+        end do XLOOP
 
-      end do ZLOOP
+      end do YLOOP
 
-    end do GROUP
+    end do ZLOOP 
 
     ! finalize matrix assembly
     call MatAssemblyEnd(M,MAT_FINAL_ASSEMBLY,ierr)
@@ -659,22 +659,22 @@ use timing, only: timer_start, timer_stop
     ng = cmfd%indices(4)
 
     ! begin loop around energy groups and spatial indices
-    GROUP: do g = 1,ng
+    ZLOOP:  do k = 1,nz
 
-      ZLOOP: do k = 1,nz
+      YLOOP: do j = 1,ny
 
-        YLOOP: do j = 1,ny
+        XLOOP: do i = 1,nx
 
-          XLOOP: do i = 1,nx
+          GROUP: do g = 1,ng
 
             NFISS: do h = 1,ng
 
               ! get cell data
-              nfissxs = cmfd%nfissxs(i,j,k,h,g)
+              nfissxs = cmfd%nfissxs(h,g,i,j,k)
 
               ! get matrix location
-              gmat_idx = get_matrix_idx(i,j,k,g,nx,ny,nz)
-              hmat_idx = get_matrix_idx(i,j,k,h,nx,ny,nz)
+              gmat_idx = get_matrix_idx(g,i,j,k,ng,nx,ny)
+              hmat_idx = get_matrix_idx(h,i,j,k,ng,nx,ny)
 
               ! reocrd value in matrix
               val = nfissxs
@@ -682,13 +682,13 @@ use timing, only: timer_start, timer_stop
 
             end do NFISS
 
-          end do XLOOP
+          end do GROUP 
 
-        end do YLOOP
+        end do XLOOP
 
-      end do ZLOOP
+      end do YLOOP
 
-    end do GROUP
+    end do ZLOOP 
 
     ! finalize matrix assembly
     call MatAssemblyEnd(F,MAT_FINAL_ASSEMBLY,ierr)
@@ -787,30 +787,30 @@ use timing, only: timer_start, timer_stop
     call VecGetArrayF90(source,source_ptr,ierr)
 
     ! loop around indices to map to cmfd object 
-    GROUP:  do g = 1,ng
+    ZLOOP:  do k = 1,nz
 
-      ZLOOP: do k = 1,nz
+      YLOOP: do j = 1,ny
 
-        YLOOP: do j = 1,ny
+        XLOOP: do i = 1,nx
 
-          XLOOP: do i = 1,nx
+          GROUP: do g = 1,ng
 
             ! get dimensions of cell
             hxyz = cmfd%hxyz(i,j,k,:)
 
             ! get index
-            idx = get_matrix_idx(i,j,k,g,nx,ny,nz)
+            idx = get_matrix_idx(g,i,j,k,ng,nx,ny)
 
             ! multiply source density by volume and record in object
-            cmfd%sourcepdf(i,j,k,g) = source_ptr(idx)*hxyz(1)*hxyz(2)*hxyz(3)
+            cmfd%sourcepdf(g,i,j,k) = source_ptr(idx)*hxyz(1)*hxyz(2)*hxyz(3)
             
-          end do XLOOP
+          end do GROUP 
 
-        end do YLOOP
+        end do XLOOP
 
-      end do ZLOOP
+      end do YLOOP
 
-    end do GROUP
+    end do ZLOOP 
 
     ! normalize source such that it sums to 1.0
     cmfd%sourcepdf = cmfd%sourcepdf/sum(cmfd%sourcepdf)

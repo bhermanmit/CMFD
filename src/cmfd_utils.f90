@@ -66,15 +66,15 @@ contains
     nz = sum(zgrid)
 
     ! allocate cmfd object
-    allocate(cmfd%totalxs(nx,ny,nz,ng))
-    allocate(cmfd%scattxs(nx,ny,nz,ng,ng))
-    allocate(cmfd%nfissxs(nx,ny,nz,ng,ng))
-    allocate(cmfd%diffcof(nx,ny,nz,ng))
-    allocate(cmfd%dtilda(nx,ny,nz,ng,6))
-    allocate(cmfd%dhat(nx,ny,nz,ng,6))
+    allocate(cmfd%totalxs(ng,nx,ny,nz))
+    allocate(cmfd%scattxs(ng,ng,nx,ny,nz))
+    allocate(cmfd%nfissxs(ng,ng,nx,ny,nz))
+    allocate(cmfd%diffcof(ng,nx,ny,nz))
+    allocate(cmfd%dtilda(6,ng,nx,ny,nz))
+    allocate(cmfd%dhat(6,ng,nx,ny,nz))
     allocate(cmfd%hxyz(nx,ny,nz,3))
     allocate(cmfd%coremap(nx,ny,nz))
-    allocate(cmfd%sourcepdf(nx,ny,nz,ng))  ! take this out when interface with openMC
+    allocate(cmfd%sourcepdf(ng,nx,ny,nz))  ! take this out when interface with openMC
 
     ! record indices in object
     cmfd%indices(1) = nx
@@ -98,16 +98,16 @@ contains
     end if
 
     ! read in core map and xs
-    GROUP: do g = 1,ng
+    ZLOOP:  do k = 1,nnz
 
-      ZLOOP: do k = 1,nnz
+      YLOOP: do j = 1,nny
 
-        YLOOP: do j = 1,nny
+        XLOOP: do i = 1,nnx
 
-          XLOOP: do i = 1,nnx
+          GROUP: do g = 1,ng
 
             ! get vector idx for core map
-            map_idx = get_matrix_idx(i,j,k,1,nnx,nny,nnz)
+            map_idx = get_matrix_idx(1,i,j,k,1,nnx,nny)
 
             ! extract material identifier
             matid = geometry%mesh(map_idx)
@@ -137,8 +137,8 @@ contains
                   end if
 
                   ! set tot xs and diff coef
-                  cmfd%totalxs(ix,jy,kz,g) = mat(matid)%totalxs(g)
-                  cmfd%diffcof(ix,jy,kz,g) = mat(matid)%diffcoef(g)
+                  cmfd%totalxs(g,ix,jy,kz) = mat(matid)%totalxs(g)
+                  cmfd%diffcof(g,ix,jy,kz) = mat(matid)%diffcoef(g)
 
                   ! loop around outgoing energy groups 
                   ELOOP: do h = 1,ng
@@ -146,8 +146,8 @@ contains
                     ! get vector h-->g index
                     ! two group --> 1-->1,1-->2,2-->1,2-->2
                     hg_idx = g + ng*(h - 1)
-                    cmfd%scattxs(ix,jy,kz,h,g) = mat(matid)%scattxs(hg_idx)
-                    cmfd%nfissxs(ix,jy,kz,h,g) = mat(matid)%nfissxs(hg_idx)
+                    cmfd%scattxs(h,g,ix,jy,kz) = mat(matid)%scattxs(hg_idx)
+                    cmfd%nfissxs(h,g,ix,jy,kz) = mat(matid)%nfissxs(hg_idx)
 
                   end do ELOOP
 
@@ -157,13 +157,13 @@ contains
 
             end do ZZLOOP
 
-          end do XLOOP
+          end do GROUP 
 
-        end do YLOOP
+        end do XLOOP
 
-      end do ZLOOP
+      end do YLOOP
 
-    end do GROUP
+    end do ZLOOP 
 
     ! get dimensions
     if (associated(geometry%uniform)) then
@@ -256,7 +256,7 @@ contains
 ! GET_MATRIX_IDX takes (x,y,z,g) indices and computes location in matrix 
 !===============================================================================
 
-  function get_matrix_idx(i,j,k,g,nx,ny,nz)
+  function get_matrix_idx(g,i,j,k,ng,nx,ny)
 
     ! arguments
     integer :: get_matrix_idx  ! the index location in matrix
@@ -264,15 +264,15 @@ contains
     integer :: j               ! current y index
     integer :: k               ! current z index
     integer :: g               ! current group index
+    integer :: ng              ! max energy groups
     integer :: nx              ! maximum cells in x direction
     integer :: ny              ! maximum cells in y direction
-    integer :: nz              ! maximum cells in z direction
 
     ! local variables
     integer :: nidx            ! index in matrix
 
     ! compute index
-    nidx = i + nx*(j - 1) + nx*ny*(k - 1) + nx*ny*nz*(g - 1)
+    nidx = g + ng*(i - 1) + ng*nx*(j - 1) + ng*nx*ny*(k - 1)
 
     ! record value to function
     get_matrix_idx = nidx
