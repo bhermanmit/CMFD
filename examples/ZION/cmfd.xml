@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cmfd>
+
+<!-- Definition of Geometry -->
+  <geometry>
+    <nx>13</nx>
+    <ny>13</ny>
+    <nz>1</nz>
+    <ng>2</ng>
+    <mesh>
+         2 3 2 3 2 2 3 2 2 4 4 1 5
+         3 2 3 2 3 3 2 4 4 4 4 1 5
+         2 3 2 3 2 2 3 2 2 4 4 1 5
+         3 2 3 2 3 3 2 4 4 4 4 1 5
+         2 3 2 3 3 3 3 4 4 1 1 1 5
+         2 3 2 3 3 3 3 4 4 1 5 5 5
+         3 2 3 2 3 3 4 4 4 1 5 5 5
+         2 4 2 4 4 4 4 1 1 1 5 5 5
+         2 4 2 4 4 4 4 1 5 5 5 5 5
+         4 4 4 4 1 1 1 1 5 5 5 5 5
+         4 4 4 4 1 5 5 5 5 5 5 5 5
+         1 1 1 1 1 5 5 5 5 5 5 5 5
+         5 5 5 5 5 5 5 5 5 5 5 5 5
+    </mesh>
+    <xgrid>10 20 20 20 2 18 20 2 18 2 18 2 18</xgrid>
+    <ygrid>10 20 20 20 2 18 20 2 18 2 18 2 18</ygrid>
+    <zgrid>1</zgrid>
+    <dx>10.804 21.608 21.608 21.608 2.8575 18.7505 21.608 2.8575 18.7505 2.8575 18.7505 2.8575 18.7505</dx>
+    <dy>10.804 21.608 21.608 21.608 2.8575 18.7505 21.608 2.8575 18.7505 2.8575 18.7505 2.8575 18.7505</dy>
+    <dz>0.1</dz>
+    <bc> 1.0 0.0 1.0 0.0 1.0 1.0  </bc>
+  </geometry>
+
+<!-- Defition of Materials -->
+  <mat uid="1">
+    <remxs> 0.00322 0.14596 </remxs>
+    <scattxs> 0.0 0.0 0.0 0.0 </scattxs>
+    <nfissxs> 0.0 0.0 </nfissxs>
+    <chi> 1.0 0.0 </chi>
+    <diffcoef> 1.0213 0.33548 </diffcoef>
+  </mat>
+
+  <mat uid="2">
+    <remxs> 0.02597 0.06669 </remxs>
+    <scattxs> 0.0 0.01742 0.0 0.0 </scattxs>
+    <nfissxs> 0.00536 0.10433 </nfissxs>
+    <chi> 1.0 0.0 </chi>
+    <diffcoef> 1.4176 0.37335 </diffcoef>
+  </mat>
+
+  <mat uid="3">
+    <remxs> 0.02576 0.07606 </remxs>
+    <scattxs> 0.0 0.01694 0.0 0.0 </scattxs>
+    <nfissxs> 0.00601 0.12472 </nfissxs>
+    <chi> 1.0 0.0 </chi>
+    <diffcoef> 1.4192 0.37370 </diffcoef>
+  </mat>
+
+  <mat uid="4">
+    <remxs> 0.02560 0.08359 </remxs>
+    <scattxs> 0.0 0.01658 0.0 0.0 </scattxs>
+    <nfissxs> 0.00653 0.1412 </nfissxs>
+    <chi> 1.0 0.0 </chi>
+    <diffcoef> 1.4265 0.37424 </diffcoef>
+  </mat>
+
+  <mat uid="5">
+    <remxs> 0.0295 0.00949 </remxs>
+    <scattxs> 0.0 0.02903 0.0 0.0 </scattxs>
+    <nfissxs> 0.0 0.0 </nfissxs>
+    <chi> 1.0 0.0 </chi>
+    <diffcoef> 1.4554 0.28994 </diffcoef>
+  </mat>
+
+</cmfd>
