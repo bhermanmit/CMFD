@@ -288,7 +288,6 @@ use timing, only: timer_start, timer_stop
     ! set up F production matrix
     call prod_matrix(F)
     call timer_stop(time_mat)
-    print *,"Matrix building time (s):",time_mat%elapsed
 
     ! begin timer for power iteration
     print *,"Beginning power iteration"
@@ -330,15 +329,19 @@ use timing, only: timer_start, timer_stop
 
     end do
 
+    ! print out keff
+    print *,'k-effective:',k_n
+
     ! end power iteration timer
     call timer_stop(time_power)
+    print *,"Matrix building time (s):",time_mat%elapsed
     print *,"Power iteration time (s):",time_power%elapsed
+    print *,"Power iteration time per iteration (s):",time_power%elapsed/i
 
     ! compute source pdf and record in cmfd object
     call source_pdf(S_n)
 
     ! output answers
-    print *,'keff:',k_o
     call PetscViewerBinaryOpen(PETSC_COMM_WORLD,'fluxvec.bin',FILE_MODE_WRITE, &
                                viewer,ierr)
     call VecView(phi_n,viewer,ierr)

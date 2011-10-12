@@ -4,6 +4,7 @@ global.o: timing.o
 main.o: global.o
 main.o: cmfd_execute.o
 main.o: cmfd_utils.o
+main.o: timing.o
 
 cmfd_execute.o: cmfd_utils.o
 cmfd_execute.o: global.o 

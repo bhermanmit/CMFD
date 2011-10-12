@@ -10,6 +10,7 @@ module global
   type(cmfd_obj) :: cmfd
 
   ! Timing objects
+  type(Timer) :: time_total  ! timer for whole calculation
   type(Timer) :: time_mat    ! timer for mat building
   type(Timer) :: time_power  ! timer for power iteration
 
