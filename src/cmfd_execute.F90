@@ -382,7 +382,7 @@ use timing, only: timer_start, timer_stop
     integer             :: nzM         ! max number of nonzeros in a row for M
     integer             :: nzF         ! max number of nonzeros in a row for F
     real(8)             :: guess=1.0   ! initial guess
-    real(8)             :: ktol=1.e-7  ! krylov tolerance
+    real(8)             :: ktol=1.e-8  ! krylov tolerance
 
 
     ! get maximum number of cells in each direction
@@ -719,8 +719,8 @@ use timing, only: timer_start, timer_stop
     logical     :: iconv  ! is the problem converged
 
     ! local variables
-    real(8)     :: ktol = 1.e-6   ! tolerance on keff
-    real(8)     :: stol = 1.e-5   ! tolerance on source
+    real(8)     :: ktol = 1.e-8   ! tolerance on keff
+    real(8)     :: stol = 1.e-6   ! tolerance on source
     real(8)     :: kerr           ! error in keff
     real(8)     :: serr           ! error in source
     real(8)     :: one = -1.0     ! one

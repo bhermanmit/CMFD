@@ -28,6 +28,8 @@ type mat_xml
    real(kind=kind(1.0d0)), dimension(:), pointer   :: scattxs => null()
    real(kind=kind(1.0d0)), dimension(:), pointer   :: nfissxs => null()
    real(kind=kind(1.0d0)), dimension(:), pointer   :: diffcoef => null()
+   real(kind=kind(1.0d0)), dimension(:), pointer   :: chi => null()
+   real(kind=kind(1.0d0)), dimension(:), pointer   :: remxs => null()
 end type mat_xml
    type(geometry_xml)                              :: geometry
    type(mat_xml), dimension(:), pointer            :: mat => null()
@@ -363,11 +365,15 @@ subroutine read_xml_type_mat_xml( info, starttag, endtag, attribs, noattribs, da
    logical                                         :: has_scattxs
    logical                                         :: has_nfissxs
    logical                                         :: has_diffcoef
+   logical                                         :: has_chi
+   logical                                         :: has_remxs
    has_uid                              = .false.
    has_totalxs                          = .false.
    has_scattxs                          = .false.
    has_nfissxs                          = .false.
    has_diffcoef                         = .false.
+   has_chi                              = .false.
+   has_remxs                            = .false.
    call init_xml_type_mat_xml(dvar)
    has_dvar = .true.
    error  = .false.
@@ -436,6 +442,14 @@ subroutine read_xml_type_mat_xml( info, starttag, endtag, attribs, noattribs, da
          call read_xml_double_array( &
             info, tag, endtag, attribs, noattribs, data, nodata, &
             dvar%diffcoef, has_diffcoef )
+      case('chi')
+         call read_xml_double_array( &
+            info, tag, endtag, attribs, noattribs, data, nodata, &
+            dvar%chi, has_chi )
+      case('remxs')
+         call read_xml_double_array( &
+            info, tag, endtag, attribs, noattribs, data, nodata, &
+            dvar%remxs, has_remxs )
       case ('comment', '!--')
          ! Simply ignore
       case default
@@ -467,6 +481,14 @@ subroutine read_xml_type_mat_xml( info, starttag, endtag, attribs, noattribs, da
    if ( .not. has_diffcoef ) then
       has_dvar = .false.
       call xml_report_errors(info, 'Missing data on diffcoef')
+   endif
+   if ( .not. has_chi ) then
+      has_dvar = .false.
+      call xml_report_errors(info, 'Missing data on chi')
+   endif
+   if ( .not. has_remxs ) then
+      has_dvar = .false.
+      call xml_report_errors(info, 'Missing data on remxs')
    endif
 end subroutine read_xml_type_mat_xml
 subroutine init_xml_type_mat_xml_array( dvar )
@@ -506,6 +528,8 @@ subroutine write_xml_type_mat_xml( &
    call write_to_xml_double_array( info, 'scattxs', indent+3, dvar%scattxs)
    call write_to_xml_double_array( info, 'nfissxs', indent+3, dvar%nfissxs)
    call write_to_xml_double_array( info, 'diffcoef', indent+3, dvar%diffcoef)
+   call write_to_xml_double_array( info, 'chi', indent+3, dvar%chi)
+   call write_to_xml_double_array( info, 'remxs', indent+3, dvar%remxs)
    write(info%lun,'(4a)') indentation(1:min(indent,100)), &
        '</' //trim(tag) // '>'
 end subroutine write_xml_type_mat_xml

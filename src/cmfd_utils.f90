@@ -136,8 +136,20 @@ contains
 
                   end if
 
-                  ! set tot xs and diff coef
-                  cmfd%totalxs(g,ix,jy,kz) = mat(matid)%totalxs(g)
+                  ! check if remxs is set
+                  if (associated(mat(matid)%remxs)) then
+
+                    ! set arbitrary totalxs
+                    cmfd%totalxs(g,ix,jy,kz) = 0.5
+
+                  else 
+
+                    ! set tot xs since it is given
+                    cmfd%totalxs(g,ix,jy,kz) = mat(matid)%totalxs(g)
+
+                  end if
+
+                  ! set diffusion coefficient
                   cmfd%diffcof(g,ix,jy,kz) = mat(matid)%diffcoef(g)
 
                   ! loop around outgoing energy groups 
@@ -146,8 +158,33 @@ contains
                     ! get vector h-->g index
                     ! two group --> 1-->1,1-->2,2-->1,2-->2
                     hg_idx = g + ng*(h - 1)
-                    cmfd%scattxs(h,g,ix,jy,kz) = mat(matid)%scattxs(hg_idx)
-                    cmfd%nfissxs(h,g,ix,jy,kz) = mat(matid)%nfissxs(hg_idx)
+
+                    ! check if remxs is set and if so adjust within group
+                    if (associated(mat(matid)%remxs) .and. g == h) then
+
+                      ! set within group scattering
+                      cmfd%scattxs(h,g,ix,jy,kz) = cmfd%totalxs(g,ix,jy,kz) -  &
+                     &                           mat(matid)%remxs(g)
+
+                    else
+
+                      ! set regular of just off-scattering
+                      cmfd%scattxs(h,g,ix,jy,kz) = mat(matid)%scattxs(hg_idx)
+
+                    end if
+
+                    ! check if chi was entered
+                    if (associated(mat(matid)%chi)) then
+ 
+                      ! set nfissxs transfer based on chi and nfissxs vector
+                      cmfd%nfissxs(h,g,ix,jy,kz) = mat(matid)%chi(g)*mat(matid)%nfissxs(h)
+
+                    else
+
+                      ! user entered in transfer matrix just record
+                      cmfd%nfissxs(h,g,ix,jy,kz) = mat(matid)%nfissxs(hg_idx)
+
+                    end if
 
                   end do ELOOP
 

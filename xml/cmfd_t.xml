@@ -27,6 +27,8 @@
     <component name="scattxs" type="double-array" />
     <component name="nfissxs" type="double-array" />
     <component name="diffcoef" type="double-array" />
+    <component name="chi" type="double-array" />
+    <component name="remxs" type="double-array" />
   </typedef>
 
   <variable name="geometry" type="geometry_xml" />
