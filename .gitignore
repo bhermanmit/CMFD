@@ -9,3 +9,4 @@ cmfd
 *.out
 fort*
 CMake*
+*.mat
