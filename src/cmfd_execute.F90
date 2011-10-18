@@ -289,6 +289,13 @@ use timing, only: timer_start, timer_stop
     call prod_matrix(F)
     call timer_stop(time_mat)
 
+    ! set up krylov info
+    call KSPSetOperators(krylov, M, M, SAME_NONZERO_PATTERN, ierr)
+    call KSPSetUp(krylov,ierr)
+
+    ! calculate preconditioner (ILU)
+    call PCFactorGetMatrix(prec,M,ierr)
+
     ! begin timer for power iteration
     print *,"Beginning power iteration"
     call timer_start(time_power)
@@ -303,7 +310,6 @@ use timing, only: timer_start, timer_stop
       call VecScale(S_o,one/k_o,ierr)
 
       ! compute new flux vector
-      call KSPSetOperators(krylov, M, M, SAME_NONZERO_PATTERN, ierr)
       call KSPSolve(krylov,S_o,phi_n,ierr)
 
       ! compute new source vector
@@ -385,7 +391,7 @@ use timing, only: timer_start, timer_stop
     integer             :: nzM         ! max number of nonzeros in a row for M
     integer             :: nzF         ! max number of nonzeros in a row for F
     real(8)             :: guess=1.0   ! initial guess
-    real(8)             :: ktol=1.e-8  ! krylov tolerance
+    real(8)             :: ktol=1.e-7  ! krylov tolerance
 
 
     ! get maximum number of cells in each direction
@@ -443,9 +449,11 @@ use timing, only: timer_start, timer_stop
    &                      PETSC_DEFAULT_DOUBLE_PRECISION,                      &
    &                      PETSC_DEFAULT_INTEGER,ierr)
     call KSPSetType(krylov,KSPGMRES,ierr)
+    call KSPSetInitialGuessNonzero(krylov,PETSC_TRUE,ierr)
+    call KSPSetInitialGuessNonzero(krylov,PETSC_TRUE,ierr)
+    call KSPGetPC(krylov,prec,ierr)
+    call PCSetType(prec,PCILU,ierr)
     call KSPSetFromOptions(krylov,ierr)
-    call KSPGetPC(krylov,Prec,ierr)
-    call PCSetType(Prec,PCILU,ierr)
 
   end subroutine init_data 
 
@@ -722,8 +730,8 @@ use timing, only: timer_start, timer_stop
     logical     :: iconv  ! is the problem converged
 
     ! local variables
-    real(8)     :: ktol = 1.e-8   ! tolerance on keff
-    real(8)     :: stol = 1.e-6   ! tolerance on source
+    real(8)     :: ktol = 1.e-6   ! tolerance on keff
+    real(8)     :: stol = 1.e-5   ! tolerance on source
     real(8)     :: kerr           ! error in keff
     real(8)     :: serr           ! error in source
     real(8)     :: one = -1.0     ! one

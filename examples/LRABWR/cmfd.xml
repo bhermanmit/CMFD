@@ -26,7 +26,7 @@
 
 <!-- Defition of Materials -->
   <mat uid="1">
-   <remxs> 0.033582 0.1003  </remxs>
+   <remxs> 0.0337075 0.1003211  </remxs>
     <scattxs> 0.0 0.02533 0.0 0.0 </scattxs>
     <nfissxs> 0.004602 0.1091 </nfissxs>
     <chi> 1.0 0.0 </chi>
@@ -34,7 +34,7 @@
   </mat>
 
   <mat uid="2">
-    <remxs> 0.034851 0.07047  </remxs>
+    <remxs> 0.0349778 0.07048902  </remxs>
     <scattxs> 0.0 0.02767 0.0 0.0 </scattxs>
     <nfissxs> 0.004609 0.08675 </nfissxs>
     <chi> 1.0 0.0 </chi>
@@ -42,7 +42,7 @@
   </mat>
 
   <mat uid="3">
-    <remxs> 0.034172 0.08344 </remxs>
+    <remxs> 0.0342979 0.08346091 </remxs>
     <scattxs> 0.0 0.02617 0.0 0.0 </scattxs>
     <nfissxs> 0.004663 0.1021 </nfissxs>
     <chi> 1.0 0.0 </chi>
@@ -50,7 +50,7 @@
   </mat>
 
   <mat uid="4">
-    <remxs> 0.034172 0.073324 </remxs>
+    <remxs> 0.0342979 0.07334491 </remxs>
     <scattxs> 0.0 0.02617 0.0 0.0 </scattxs>
     <nfissxs> 0.004663 0.1021 </nfissxs>
     <chi> 1.0 0.0 </chi>
@@ -58,7 +58,7 @@
   </mat>
 
   <mat uid="5">
-    <remxs> 0.0481434 0.01911 </remxs>
+    <remxs> 0.0482691 0.01912592 </remxs>
     <scattxs> 0.0 0.04754 0.0 0.0 </scattxs>
     <nfissxs> 0.0 0.0 </nfissxs>
     <chi> 1.0 0.0 </chi>
