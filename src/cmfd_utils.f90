@@ -74,7 +74,6 @@ contains
     allocate(cmfd%dhat(6,ng,nx,ny,nz))
     allocate(cmfd%hxyz(nx,ny,nz,3))
     allocate(cmfd%coremap(nx,ny,nz))
-    allocate(cmfd%sourcepdf(ng,nx,ny,nz))  ! take this out when interface with openMC
 
     ! record indices in object
     cmfd%indices(1) = nx

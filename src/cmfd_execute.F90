@@ -345,7 +345,7 @@ use timing, only: timer_start, timer_stop
     print *,"Power iteration time per iteration (s):",time_power%elapsed/i
 
     ! compute source pdf and record in cmfd object
-    call source_pdf(S_n)
+!   call source_pdf(S_n)
 
     ! output answers
     call PetscViewerBinaryOpen(PETSC_COMM_WORLD,'fluxvec.bin',FILE_MODE_WRITE, &
