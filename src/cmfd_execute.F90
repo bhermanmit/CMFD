@@ -534,8 +534,14 @@ use timing, only: timer_start, timer_stop
             totxs = cmfd%totalxs(g,i,j,k)
             scattxsgg = cmfd%scattxs(g,g,i,j,k)
             dtilda = cmfd%dtilda(:,g,i,j,k)
-            dhat = cmfd%dhat(:,g,i,j,k)
             hxyz = cmfd%hxyz(i,j,k,:)
+
+            ! check and get dhat
+            if (allocated(cmfd%dhat)) then
+              dhat = cmfd%dhat(:,g,i,j,k)
+            else
+              dhat = 0.0
+            end if
 
             ! create boundary vector 
             bound = (/i,i,j,j,k,k/)

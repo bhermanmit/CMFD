@@ -71,7 +71,6 @@ contains
     allocate(cmfd%nfissxs(ng,ng,nx,ny,nz))
     allocate(cmfd%diffcof(ng,nx,ny,nz))
     allocate(cmfd%dtilda(6,ng,nx,ny,nz))
-    allocate(cmfd%dhat(6,ng,nx,ny,nz))
     allocate(cmfd%hxyz(nx,ny,nz,3))
     allocate(cmfd%coremap(nx,ny,nz))
 
@@ -83,9 +82,6 @@ contains
 
     ! set boundary conditions
     cmfd%albedo = geometry%bc
-
-    ! set dhat to 0.0
-    cmfd%dhat = 0.0
 
     ! check core map dimensions
     if (size(geometry%mesh,1) /= nnx*nny*nnz) then
@@ -255,14 +251,9 @@ contains
 
     end if
 
+    ! write out core map and deallocate
     write(200,*) cmfd%coremap
-
-!   print *,"Total:",cmfd%totalxs(45,45,1,:)
-!   print *,"Coremap:",cmfd%coremap(45,45,1)
-!   print *,"Scattering:",cmfd%scattxs(45,45,1,:,:)
-!   print *,"NuFission:",cmfd%nfissxs(45,45,1,:,:)
-!   print *,"Diffusion Coef:",cmfd%diffcof(45,45,1,:)
-!   print *,"Dimensions:",cmfd%hxyz(45,45,1,:)
+    deallocate(cmfd%coremap)
 
     ! echo input
 !   print *, 'Dimensions:'
