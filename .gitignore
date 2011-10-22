@@ -29,3 +29,6 @@ output
 
 # CMake files
 CMake*
+
+# Inkscape source files
+*.svg
