@@ -267,7 +267,9 @@ use timing, only: timer_start, timer_stop
     KSP         :: krylov  ! krylov solver
     PC          :: prec    ! preconditioner for krylov
     PetscViewer :: viewer  ! viewer for answer
-
+    real(8) :: info(MAT_INFO_SIZE)
+    real(8) :: mall
+    real(8) :: nza,nzu,nzun
     integer :: i       ! iteration counter
     logical :: iconv   ! is problem converged
 
@@ -284,6 +286,11 @@ use timing, only: timer_start, timer_stop
 
     ! set up M loss matrix
     call loss_matrix(M)
+!   call MatGetInfo(M,MAT_LOCAL,info,ierr)
+!   mall = info(MAT_INFO_MEMORY) 
+!   nza = info(MAT_INFO_NZ_ALLOCATED)
+!   nzu = info(MAT_INFO_NZ_USED)
+!   nzun = info(MAT_INFO_NZ_UNNEEDED)
 
     ! set up F production matrix
     call prod_matrix(F)
@@ -392,6 +399,7 @@ use timing, only: timer_start, timer_stop
     integer             :: nzF         ! max number of nonzeros in a row for F
     real(8)             :: guess=1.0   ! initial guess
     real(8)             :: ktol=1.e-7  ! krylov tolerance
+    real(8)             :: mem
 
 
     ! get maximum number of cells in each direction
