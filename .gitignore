@@ -26,6 +26,7 @@ output
 *.png
 *.m
 *.mat
+*.fig
 
 # CMake files
 CMake*
