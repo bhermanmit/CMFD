@@ -10,4 +10,4 @@ Explain here, test math below
 
      \mathbf{A} = 0
 
-where :math: `mathbf{A}` is a matrix.
+where :math:`\mathbf{A}` is a matrix.

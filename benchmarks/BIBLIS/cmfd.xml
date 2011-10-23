@@ -29,7 +29,7 @@
 
 <!-- Defition of Materials -->
   <mat uid="1">
-    <remxs> 0.027258 0.0750580 </remxs>
+    <remxs> 0.0272582 0.0750580 </remxs>
     <scattxs>0.0 0.017754 0.0 0.0</scattxs>
     <nfissxs>0.0058708 0.0960670</nfissxs>
     <chi> 1.0 0.0 </chi>
