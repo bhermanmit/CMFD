@@ -252,21 +252,26 @@ use timing, only: timer_start, timer_stop
 
 #include <finclude/petsc.h90>
 
-    Mat         :: M       ! loss matrix
-    Mat         :: F       ! production matrix
-    Vec         :: phi_n   ! new flux eigenvector
-    Vec         :: phi_o   ! old flux eigenvector
-    Vec         :: S_n     ! new source vector
-    Vec         :: S_o     ! old source vector
-    real(8)     :: k_n     ! new k-eigenvalue
-    real(8)     :: k_o     ! old k-eigenvlaue
-    real(8)     :: num     ! numerator for eigenvalue update
-    real(8)     :: den     ! denominator for eigenvalue update
-    real(8)     :: one=1.0 ! one
-    integer     :: ierr    ! error flag
-    KSP         :: krylov  ! krylov solver
-    PC          :: prec    ! preconditioner for krylov
-    PetscViewer :: viewer  ! viewer for answer
+    Mat         :: A             ! shift matrix
+    Mat         :: M             ! loss matrix
+    Mat         :: F             ! production matrix
+    Vec         :: phi_n         ! new flux eigenvector
+    Vec         :: phi_o         ! old flux eigenvector
+    Vec         :: S_n           ! new source vector
+    Vec         :: S_o           ! old source vector
+    real(8)     :: k_n           ! new k-eigenvalue
+    real(8)     :: k_o           ! old k-eigenvlaue
+    real(8)     :: ka_n          ! new modified eigenvalue
+    real(8)     :: ka_o          ! old modified eigenvalue   
+    real(8)     :: num           ! numerator for eigenvalue update
+    real(8)     :: den           ! denominator for eigenvalue update
+    real(8)     :: one =  1.0    ! one
+    real(8)     :: dk = 0.04     ! eigenvalue shift
+    real(8)     :: ks            ! negative one
+    integer     :: ierr          ! error flag
+    KSP         :: krylov        ! krylov solver
+    PC          :: prec          ! preconditioner for krylov
+    PetscViewer :: viewer        ! viewer for answer
     real(8) :: info(MAT_INFO_SIZE)
     real(8) :: mall
     real(8) :: nza,nzu,nzun
@@ -282,7 +287,7 @@ use timing, only: timer_start, timer_stop
     ! initialize matrices and vectors
     print *,"Initializing and building matrices"
     call timer_start(time_mat)
-    call init_data(M,F,phi_n,phi_o,S_n,S_o,k_n,k_o,krylov,prec)
+    call init_data(A,M,F,phi_n,phi_o,S_n,S_o,k_n,k_o,krylov,prec)
 
     ! set up M loss matrix
     call loss_matrix(M)
@@ -296,19 +301,33 @@ use timing, only: timer_start, timer_stop
     call prod_matrix(F)
     call timer_stop(time_mat)
 
-    ! set up krylov info
-    call KSPSetOperators(krylov, M, M, SAME_NONZERO_PATTERN, ierr)
-    call KSPSetUp(krylov,ierr)
-
-    ! calculate preconditioner (ILU)
-    call PCFactorGetMatrix(prec,M,ierr)
-
     ! begin timer for power iteration
     print *,"Beginning power iteration"
     call timer_start(time_power)
 
+    ! set of Wielandt eigenvalues
+    ka_n = k_n
+    ka_o = k_o
+
     ! begin power iteration
     do i = 1,10000
+
+      print *, 'HERE'
+      ! shift eigenvalue
+      ks = -1*(k_o - dk)
+
+      ! set up Wielandt shift
+print *,'before copy'
+      call MatCopy(M,A,SAME_NONZERO_PATTERN,ierr)
+print *,'after copy'
+      call MatAXPY(A,ks,F,DIFFERENT_NONZERO_PATTERN,ierr)
+      print *,'HERE2'
+      ! set up krylov info
+      call KSPSetOperators(krylov, A, A, SAME_NONZERO_PATTERN, ierr)
+      call KSPSetUp(krylov,ierr)
+print *,'HERE3'
+      ! calculate preconditioner (ILU)
+      call PCFactorGetMatrix(prec,A,ierr)
 
       ! compute source vector
       call MatMult(F,phi_o,S_o,ierr)
@@ -325,7 +344,8 @@ use timing, only: timer_start, timer_stop
       ! compute new k-eigenvalue
       call VecSum(S_n,num,ierr)
       call VecSum(S_o,den,ierr)
-      k_n = num/den
+      ka_n = num/den
+      k_n = (ka_n*(-1)*ks)/(ka_n - ks)
 
       ! renormalize the old source
       call VecScale(S_o,k_o,ierr)
@@ -339,7 +359,8 @@ use timing, only: timer_start, timer_stop
       ! record old values
       call VecCopy(phi_n,phi_o,ierr)
       k_o = k_n
-
+      ka_o = ka_n
+stop
     end do
 
     ! print out keff
@@ -350,6 +371,7 @@ use timing, only: timer_start, timer_stop
     print *,"Matrix building time (s):",time_mat%elapsed
     print *,"Power iteration time (s):",time_power%elapsed
     print *,"Power iteration time per iteration (s):",time_power%elapsed/i
+    print *,"Total number of power iterations:",i
 
     ! compute source pdf and record in cmfd object
 !   call source_pdf(S_n)
@@ -370,11 +392,12 @@ use timing, only: timer_start, timer_stop
 ! INIT_DATA allocates matrices vectors for CMFD solution
 !===============================================================================
 
-  subroutine init_data(M,F,phi_n,phi_o,S_n,S_o,k_n,k_o,krylov,prec)
+  subroutine init_data(A,M,F,phi_n,phi_o,S_n,S_o,k_n,k_o,krylov,prec)
 
 #include <finclude/petsc.h90>
 
     ! arguments
+    Mat         :: A          ! shifted matrxi
     Mat         :: M          ! loss matrix
     Mat         :: F          ! production matrix
     Vec         :: phi_n      ! new flux eigenvector
@@ -426,6 +449,12 @@ use timing, only: timer_start, timer_stop
     call MatSetOption(F,MAT_NEW_NONZERO_LOCATIONS,PETSC_TRUE,ierr)
     call MatSetOption(F,MAT_IGNORE_ZERO_ENTRIES,PETSC_TRUE,ierr)
     call MatSetOption(F,MAT_USE_HASH_TABLE,PETSC_TRUE,ierr)
+
+    ! set up production matrix
+    call MatCreateSeqAIJ(PETSC_COMM_SELF,n,n,nzM,PETSC_NULL_INTEGER,A,ierr)
+    call MatSetOption(A,MAT_NEW_NONZERO_LOCATIONS,PETSC_TRUE,ierr)
+    call MatSetOption(A,MAT_IGNORE_ZERO_ENTRIES,PETSC_TRUE,ierr)
+    call MatSetOption(A,MAT_USE_HASH_TABLE,PETSC_TRUE,ierr)
 
 
     ! set up flux vectors
