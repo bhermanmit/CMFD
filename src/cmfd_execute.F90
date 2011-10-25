@@ -278,6 +278,8 @@ use timing, only: timer_start, timer_stop
     integer :: i       ! iteration counter
     logical :: iconv   ! is problem converged
     integer :: nzM,n
+    integer :: maxit
+    real(8) :: ktol
 
     ! reset convergence flag
     iconv = .FALSE.
@@ -345,7 +347,10 @@ use timing, only: timer_start, timer_stop
 
       ! compute new flux vector
       call KSPSolve(krylov,S_o,phi_n,ierr)
- 
+
+      call KSPGetIterationNumber(krylov,maxit,ierr)
+      call KSPGetResidualNorm(krylov,ktol,ierr)
+print *,maxit,ktol
       ! compute new source vector
       call MatMult(F,phi_n,S_n,ierr)
 
@@ -767,9 +772,10 @@ use timing, only: timer_start, timer_stop
     integer             :: nz          ! maximum number of z cells
     integer             :: ng          ! maximum number of groups
     integer             :: nzM         ! max number of nonzeros in a row for M
-    real(8)             :: ktol=1.e-7  ! krylov tolerance
+    integer             :: maxit = 100  ! max krylov iters
+    real(8)             :: ktol=1.e-5  ! krylov tolerance
     real(8)             :: mem
-
+    integer             :: res = 100
 
     ! get maximum number of cells in each direction
     nx = cmfd%indices(1)
@@ -793,12 +799,13 @@ use timing, only: timer_start, timer_stop
     call KSPCreate(PETSC_COMM_WORLD,krylov,ierr)
     call KSPSetTolerances(krylov,ktol,PETSC_DEFAULT_DOUBLE_PRECISION,          &
    &                      PETSC_DEFAULT_DOUBLE_PRECISION,                      &
-   &                      PETSC_DEFAULT_INTEGER,ierr)
+   &                      maxit,ierr)
     call KSPSetType(krylov,KSPGMRES,ierr)
     call KSPSetInitialGuessNonzero(krylov,PETSC_TRUE,ierr)
     call KSPSetInitialGuessNonzero(krylov,PETSC_TRUE,ierr)
     call KSPGetPC(krylov,prec,ierr)
     call PCSetType(prec,PCILU,ierr)
+    call KSPGMRESSetRestart(krylov,res,ierr)
     call KSPSetFromOptions(krylov,ierr)
 
   end subroutine init_solver
