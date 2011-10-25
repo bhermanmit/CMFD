@@ -266,7 +266,7 @@ use timing, only: timer_start, timer_stop
     real(8)     :: num           ! numerator for eigenvalue update
     real(8)     :: den           ! denominator for eigenvalue update
     real(8)     :: one =  1.0    ! one
-    real(8)     :: dk = 0.04     ! eigenvalue shift
+    real(8)     :: dk = 0.0      ! eigenvalue shift
     real(8)     :: ks            ! negative one
     integer     :: ierr          ! error flag
     KSP         :: krylov        ! krylov solver
@@ -277,6 +277,7 @@ use timing, only: timer_start, timer_stop
     real(8) :: nza,nzu,nzun
     integer :: i       ! iteration counter
     logical :: iconv   ! is problem converged
+    integer :: nzM,n
 
     ! reset convergence flag
     iconv = .FALSE.
@@ -287,7 +288,7 @@ use timing, only: timer_start, timer_stop
     ! initialize matrices and vectors
     print *,"Initializing and building matrices"
     call timer_start(time_mat)
-    call init_data(A,M,F,phi_n,phi_o,S_n,S_o,k_n,k_o,krylov,prec)
+    call init_data(A,M,F,phi_n,phi_o,S_n,S_o,k_n,k_o,krylov,prec,nzM,n)
 
     ! set up M loss matrix
     call loss_matrix(M)
@@ -312,20 +313,17 @@ use timing, only: timer_start, timer_stop
     ! begin power iteration
     do i = 1,10000
 
-      print *, 'HERE'
       ! shift eigenvalue
       ks = -1*(k_o - dk)
 
       ! set up Wielandt shift
-print *,'before copy'
       call MatCopy(M,A,SAME_NONZERO_PATTERN,ierr)
-print *,'after copy'
-      call MatAXPY(A,ks,F,DIFFERENT_NONZERO_PATTERN,ierr)
-      print *,'HERE2'
+      call MatAXPY(A,one/ks,F,SUBSET_NONZERO_PATTERN,ierr)
+
       ! set up krylov info
       call KSPSetOperators(krylov, A, A, SAME_NONZERO_PATTERN, ierr)
       call KSPSetUp(krylov,ierr)
-print *,'HERE3'
+
       ! calculate preconditioner (ILU)
       call PCFactorGetMatrix(prec,A,ierr)
 
@@ -333,11 +331,11 @@ print *,'HERE3'
       call MatMult(F,phi_o,S_o,ierr)
 
       ! normalize source vector
-      call VecScale(S_o,one/k_o,ierr)
+      call VecScale(S_o,one/ka_o,ierr)
 
       ! compute new flux vector
       call KSPSolve(krylov,S_o,phi_n,ierr)
-
+ 
       ! compute new source vector
       call MatMult(F,phi_n,S_n,ierr)
 
@@ -348,7 +346,7 @@ print *,'HERE3'
       k_n = (ka_n*(-1)*ks)/(ka_n - ks)
 
       ! renormalize the old source
-      call VecScale(S_o,k_o,ierr)
+      call VecScale(S_o,ka_o,ierr)
 
       ! check convergence
       call convergence(S_n,S_o,k_o,k_n,iconv)
@@ -360,7 +358,23 @@ print *,'HERE3'
       call VecCopy(phi_n,phi_o,ierr)
       k_o = k_n
       ka_o = ka_n
-stop
+      call KSPDestroy(krylov,ierr)
+    ! set up Wielandt matrix
+    call MatCreateSeqAIJ(PETSC_COMM_SELF,n,n,nzM,PETSC_NULL_INTEGER,A,ierr)
+    call MatSetOption(A,MAT_NEW_NONZERO_LOCATIONS,PETSC_TRUE,ierr)
+    call MatSetOption(A,MAT_IGNORE_ZERO_ENTRIES,PETSC_TRUE,ierr)
+    call MatSetOption(A,MAT_USE_HASH_TABLE,PETSC_TRUE,ierr)
+    call KSPCreate(PETSC_COMM_WORLD,krylov,ierr)
+    call KSPSetTolerances(krylov,1d-7,PETSC_DEFAULT_DOUBLE_PRECISION,          &
+   &                      PETSC_DEFAULT_DOUBLE_PRECISION,                      &
+   &                      PETSC_DEFAULT_INTEGER,ierr)
+    call KSPSetType(krylov,KSPGMRES,ierr)
+    call KSPSetInitialGuessNonzero(krylov,PETSC_TRUE,ierr)
+    call KSPSetInitialGuessNonzero(krylov,PETSC_TRUE,ierr)
+    call KSPGetPC(krylov,prec,ierr)
+    call PCSetType(prec,PCILU,ierr)
+    call KSPSetFromOptions(krylov,ierr)
+
     end do
 
     ! print out keff
@@ -392,7 +406,7 @@ stop
 ! INIT_DATA allocates matrices vectors for CMFD solution
 !===============================================================================
 
-  subroutine init_data(A,M,F,phi_n,phi_o,S_n,S_o,k_n,k_o,krylov,prec)
+  subroutine init_data(A,M,F,phi_n,phi_o,S_n,S_o,k_n,k_o,krylov,prec,nzM,n)
 
 #include <finclude/petsc.h90>
 
@@ -411,8 +425,6 @@ stop
  
     ! local variables
     integer             :: n           ! dimensions of matrix
-    integer             :: nz_M        ! number of nonzeros in loss matrix
-    integer             :: nz_F        ! number of nonzeros in prod matrix
     integer             :: ierr        ! error flag
     integer             :: nx          ! maximum number of x cells
     integer             :: ny          ! maximum number of y cells
@@ -450,7 +462,7 @@ stop
     call MatSetOption(F,MAT_IGNORE_ZERO_ENTRIES,PETSC_TRUE,ierr)
     call MatSetOption(F,MAT_USE_HASH_TABLE,PETSC_TRUE,ierr)
 
-    ! set up production matrix
+    ! set up Wielandt matrix
     call MatCreateSeqAIJ(PETSC_COMM_SELF,n,n,nzM,PETSC_NULL_INTEGER,A,ierr)
     call MatSetOption(A,MAT_NEW_NONZERO_LOCATIONS,PETSC_TRUE,ierr)
     call MatSetOption(A,MAT_IGNORE_ZERO_ENTRIES,PETSC_TRUE,ierr)
