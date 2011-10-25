@@ -266,7 +266,7 @@ use timing, only: timer_start, timer_stop
     real(8)     :: num           ! numerator for eigenvalue update
     real(8)     :: den           ! denominator for eigenvalue update
     real(8)     :: one =  1.0    ! one
-    real(8)     :: dk = 0.01     ! eigenvalue shift
+    real(8)     :: dk = 0.1     ! eigenvalue shift
     real(8)     :: ks            ! negative one
     integer     :: ierr          ! error flag
     KSP         :: krylov        ! krylov solver
@@ -315,7 +315,7 @@ use timing, only: timer_start, timer_stop
 
       ! shift eigenvalue
       if (i <= 5) then
-        ks = -1.10
+        ks = -1.30
       else
         ks = -1*(k_o + dk)
       end if
