@@ -266,7 +266,7 @@ use timing, only: timer_start, timer_stop
     real(8)     :: num           ! numerator for eigenvalue update
     real(8)     :: den           ! denominator for eigenvalue update
     real(8)     :: one =  1.0    ! one
-    real(8)     :: dk = 0.04     ! eigenvalue shift
+    real(8)     :: dk = 0.01     ! eigenvalue shift
     real(8)     :: ks            ! negative one
     integer     :: ierr          ! error flag
     KSP         :: krylov        ! krylov solver
@@ -314,12 +314,20 @@ use timing, only: timer_start, timer_stop
     do i = 1,10000
 
       ! shift eigenvalue
-      ks = -1*(k_o - dk)
+      if (i <= 5) then
+        ks = -1.10
+      else
+        ks = -1*(k_o + dk)
+      end if
 
       ! set up Wielandt shift
       call init_solver(A,krylov,prec)
       call MatCopy(M,A,SAME_NONZERO_PATTERN,ierr)
-      call MatAXPY(A,one/ks,F,SUBSET_NONZERO_PATTERN,ierr)
+
+      ! only shift after iteration 1
+      if (i /= 1) then
+        call MatAXPY(A,one/ks,F,SUBSET_NONZERO_PATTERN,ierr)
+      end if
 
       ! set up krylov info
       call KSPSetOperators(krylov, A, A, SAME_NONZERO_PATTERN, ierr)
