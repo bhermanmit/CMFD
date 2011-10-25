@@ -265,6 +265,10 @@ use timing, only: timer_start, timer_stop
     real(8) :: k_r,k_i
     Vec     :: phi_r,phi_i
     PetscInt :: i,nconv,its,nev
+    ST       :: st
+    KSP      :: krylov
+    real(8)  :: ktol=1.e-7
+    PC       :: prec
 
     ! initialize PETSc
     call SlepcInitialize(PETSC_NULL_CHARACTER,ierr)
@@ -295,7 +299,23 @@ use timing, only: timer_start, timer_stop
     call EPSSetProblemType(eps,EPS_GNHEP,ierr)
     call EPSSetFromOptions(eps,ierr)
 !   call EPSSetType(eps,EPSPOWER,ierr)
-    call EPSSetWhichEigenpairs(eps,EPS_LARGEST_MAGNITUDE,ierr)
+    call EPSSetWhichEigenpairs(eps,EPS_SMALLEST_MAGNITUDE,ierr)
+
+!   call STCreate(PETSC_COMM_WORLD,st,ierr)
+!   call STSetType(st,STSHIFT,ierr)
+
+!   call KSPCreate(PETSC_COMM_WORLD,krylov,ierr)
+!   call KSPSetTolerances(krylov,ktol,PETSC_DEFAULT_DOUBLE_PRECISION, &
+!  & PETSC_DEFAULT_DOUBLE_PRECISION,PETSC_DEFAULT_INTEGER,ierr)
+!   call KSPSetType(krylov,KSPGMRES,ierr)
+!   call KSPSetInitialGuessNonzero(krylov,PETSC_TRUE,ierr)
+!   call KSPSetInitialGuessNonzero(krylov,PETSC_TRUE,ierr)
+!   call KSPGetPC(krylov,prec,ierr)
+!   call PCSetType(prec,PCILU,ierr)
+!   call KSPSetFromOptions(krylov,ierr)
+
+!   call STSetKSP(st,krylov,ierr)
+
     call EPSSolve(eps,ierr)
 
     call timer_stop(time_power)
@@ -310,12 +330,13 @@ use timing, only: timer_start, timer_stop
     print *,"number of eigenvalues requested:",nev
 
 
-    do i = 0,nconv-1
+!   do i = 0,nconv-1
+      i = 0
       call EPSGetEigenpair(eps,i,k_r,k_i,PETSC_NULL_OBJECT,PETSC_NULL_OBJECT,ierr)
 
-      print *, "eigenvalue is:",k_r,k_i
+      print *, "eigenvalue is:",1/k_r
 
-    end do
+!   end do
 
     ! finalize PETSc
     call SlepcFinalize(ierr)
