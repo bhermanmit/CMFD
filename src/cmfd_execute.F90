@@ -344,7 +344,7 @@ use timing, only: timer_start, timer_stop
       call VecSum(S_n,num,ierr)
       call VecSum(S_o,den,ierr)
       ka_n = num/den
-      k_n = (ka_n*(-1)*ks)/(ka_n - ks)
+      k_n = 1/(1/ka_n - 1/ks)
 
       ! renormalize the old source
       call VecScale(S_o,ka_o,ierr)
