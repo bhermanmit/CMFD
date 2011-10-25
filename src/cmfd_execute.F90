@@ -350,6 +350,7 @@ use timing, only: timer_start, timer_stop
     print *,"Matrix building time (s):",time_mat%elapsed
     print *,"Power iteration time (s):",time_power%elapsed
     print *,"Power iteration time per iteration (s):",time_power%elapsed/i
+    print *,"Number of Power iterations:",i
 
     ! compute source pdf and record in cmfd object
 !   call source_pdf(S_n)
