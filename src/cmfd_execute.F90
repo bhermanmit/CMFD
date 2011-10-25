@@ -251,6 +251,8 @@ contains
 use timing, only: timer_start, timer_stop
 
 #include <finclude/petsc.h90>
+#include <finclude/slepcsys.h>
+#include <finclude/slepceps.h>
 
     Mat         :: M       ! loss matrix
     Mat         :: F       ! production matrix
@@ -272,12 +274,13 @@ use timing, only: timer_start, timer_stop
     real(8) :: nza,nzu,nzun
     integer :: i       ! iteration counter
     logical :: iconv   ! is problem converged
+    EPS     :: eps
 
     ! reset convergence flag
     iconv = .FALSE.
 
     ! initialize PETSc
-    call PetscInitialize(PETSC_NULL_CHARACTER,ierr)
+    call SlepcInitialize(PETSC_NULL_CHARACTER,ierr)
 
     ! initialize matrices and vectors
     print *,"Initializing and building matrices"
@@ -307,61 +310,14 @@ use timing, only: timer_start, timer_stop
     print *,"Beginning power iteration"
     call timer_start(time_power)
 
-    ! begin power iteration
-    do i = 1,10000
-
-      ! compute source vector
-      call MatMult(F,phi_o,S_o,ierr)
-
-      ! normalize source vector
-      call VecScale(S_o,one/k_o,ierr)
-
-      ! compute new flux vector
-      call KSPSolve(krylov,S_o,phi_n,ierr)
-
-      ! compute new source vector
-      call MatMult(F,phi_n,S_n,ierr)
-
-      ! compute new k-eigenvalue
-      call VecSum(S_n,num,ierr)
-      call VecSum(S_o,den,ierr)
-      k_n = num/den
-
-      ! renormalize the old source
-      call VecScale(S_o,k_o,ierr)
-
-      ! check convergence
-      call convergence(S_n,S_o,k_o,k_n,iconv)
-
-      ! to break or not to break
-      if (iconv) exit
-
-      ! record old values
-      call VecCopy(phi_n,phi_o,ierr)
-      k_o = k_n
-
-    end do
-
-    ! print out keff
-    print *,'k-effective:',k_n
-
-    ! end power iteration timer
-    call timer_stop(time_power)
-    print *,"Matrix building time (s):",time_mat%elapsed
-    print *,"Power iteration time (s):",time_power%elapsed
-    print *,"Power iteration time per iteration (s):",time_power%elapsed/i
-
-    ! compute source pdf and record in cmfd object
-!   call source_pdf(S_n)
-
-    ! output answers
-    call PetscViewerBinaryOpen(PETSC_COMM_WORLD,'fluxvec.bin',FILE_MODE_WRITE, &
-                               viewer,ierr)
-    call VecView(phi_n,viewer,ierr)
-    call PetscViewerDestroy(viewer,ierr)
+    call EPSCreate(PETSC_COMM_WORLD,eps,ierr)
+    call EPSSetOperators(eps,M,F,ierr)
+    call EPSSetProblemType(eps,EPS_GNHEP,ierr)
+    call EPSSetFromOptions(eps,ierr)
+    call EPSSolve(eps,ierr)
 
     ! finalize PETSc
-    call PetscFinalize(ierr)
+    call SlepcFinalize(ierr)
 
 
   end subroutine cmfd_solver

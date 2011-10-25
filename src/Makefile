@@ -4,8 +4,7 @@ program = cmfd
 # PETSc files
 #===============================================================================
 
-include ${PETSC_DIR}/conf/variables
-include ${PETSC_DIR}/conf/rules
+include ${SLEPC_DIR}/conf/slepc_common
 
 #===============================================================================
 # Object Files
@@ -26,7 +25,7 @@ include OBJECTS
 
 all: $(program)
 $(program): $(objects) chkopts
-	${FLINKER} $(objects) -o $@ $(LDFLAGS) ${PETSC_SYS_LIB}
+	${FLINKER} $(objects) -o $@ $(LDFLAGS) ${SLEPC_LIB}
 
 #===============================================================================
 # Rules
