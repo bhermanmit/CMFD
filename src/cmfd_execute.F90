@@ -462,6 +462,7 @@ use timing, only: timer_start, timer_stop
     call KSPSetInitialGuessNonzero(krylov,PETSC_TRUE,ierr)
     call KSPGetPC(krylov,prec,ierr)
     call PCSetType(prec,PCILU,ierr)
+    call PCFactorSetLevels(prec,5,ierr)
     call KSPSetFromOptions(krylov,ierr)
 
   end subroutine init_data 
