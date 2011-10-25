@@ -262,6 +262,9 @@ use timing, only: timer_start, timer_stop
     real(8) :: mall
     real(8) :: nza,nzu,nzun
     EPS     :: eps
+    real(8) :: k_r,k_i
+    Vec     :: phi_r,phi_i
+    PetscInt :: i,nconv,its,nev
 
     ! initialize PETSc
     call SlepcInitialize(PETSC_NULL_CHARACTER,ierr)
@@ -291,10 +294,28 @@ use timing, only: timer_start, timer_stop
     call EPSSetOperators(eps,M,F,ierr)
     call EPSSetProblemType(eps,EPS_GNHEP,ierr)
     call EPSSetFromOptions(eps,ierr)
-    call EPSSetType(eps,EPSPOWER,ierr)
+!   call EPSSetType(eps,EPSPOWER,ierr)
+    call EPSSetWhichEigenpairs(eps,EPS_LARGEST_MAGNITUDE,ierr)
     call EPSSolve(eps,ierr)
 
     call timer_stop(time_power)
+
+    call EPSGetIterationNumber(eps,its,ierr)
+    print *, "number of iterations:",its
+
+    call EPSGetConverged(eps,nconv,ierr)
+    print *,"number of converged is",nconv
+
+    call EPSGetDimensions(eps,nev,PETSC_NULL_INTEGER,PETSC_NULL_INTEGER,ierr)
+    print *,"number of eigenvalues requested:",nev
+
+
+    do i = 0,nconv-1
+      call EPSGetEigenpair(eps,i,k_r,k_i,PETSC_NULL_OBJECT,PETSC_NULL_OBJECT,ierr)
+
+      print *, "eigenvalue is:",k_r,k_i
+
+    end do
 
     ! finalize PETSc
     call SlepcFinalize(ierr)
