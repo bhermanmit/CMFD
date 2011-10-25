@@ -266,7 +266,7 @@ use timing, only: timer_start, timer_stop
     real(8)     :: num           ! numerator for eigenvalue update
     real(8)     :: den           ! denominator for eigenvalue update
     real(8)     :: one =  1.0    ! one
-    real(8)     :: dk = 0.1     ! eigenvalue shift
+    real(8)     :: dk = 0.01     ! eigenvalue shift
     real(8)     :: ks            ! negative one
     integer     :: ierr          ! error flag
     KSP         :: krylov        ! krylov solver
@@ -315,12 +315,13 @@ use timing, only: timer_start, timer_stop
 
       ! shift eigenvalue
       if (i <= 5) then
-        ks = -1.30
+        ks = -1.10
       else
         ks = -1*(k_o + dk)
       end if
 
       ! set up Wielandt shift
+!     if (i == 1) then
       call init_solver(A,krylov,prec)
       call MatCopy(M,A,SAME_NONZERO_PATTERN,ierr)
 
@@ -335,7 +336,7 @@ use timing, only: timer_start, timer_stop
 
       ! calculate preconditioner (ILU)
       call PCFactorGetMatrix(prec,A,ierr)
-
+!     end if 
       ! compute source vector
       call MatMult(F,phi_o,S_o,ierr)
 
@@ -348,11 +349,17 @@ use timing, only: timer_start, timer_stop
       ! compute new source vector
       call MatMult(F,phi_n,S_n,ierr)
 
-      ! compute new k-eigenvalue
+      ! compute new shifted k-eigenvalue
       call VecSum(S_n,num,ierr)
       call VecSum(S_o,den,ierr)
       ka_n = num/den
-      k_n = 1/(1/ka_n - 1/ks)
+
+      ! compute new k-eigenvalue
+      if (i ==1) then 
+        k_n = ka_n
+      else
+        k_n = 1/(1/ka_n - 1/ks)
+      end if
 
       ! renormalize the old source
       call VecScale(S_o,ka_o,ierr)
