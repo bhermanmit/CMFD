@@ -772,8 +772,8 @@ print *,maxit,ktol
     integer             :: nz          ! maximum number of z cells
     integer             :: ng          ! maximum number of groups
     integer             :: nzM         ! max number of nonzeros in a row for M
-    integer             :: maxit = 100  ! max krylov iters
-    real(8)             :: ktol=1.e-5  ! krylov tolerance
+    integer             :: maxit = 10e4  ! max krylov iters
+    real(8)             :: ktol=1.e-7  ! krylov tolerance
     real(8)             :: mem
     integer             :: res = 100
 
@@ -805,7 +805,7 @@ print *,maxit,ktol
     call KSPSetInitialGuessNonzero(krylov,PETSC_TRUE,ierr)
     call KSPGetPC(krylov,prec,ierr)
     call PCSetType(prec,PCILU,ierr)
-    call KSPGMRESSetRestart(krylov,res,ierr)
+!   call KSPGMRESSetRestart(krylov,res,ierr)
     call KSPSetFromOptions(krylov,ierr)
 
   end subroutine init_solver
