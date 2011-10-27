@@ -11,7 +11,7 @@
          1
     </mesh>
     <xgrid>10</xgrid>
-    <ygrid>2</ygrid>
+    <ygrid>1</ygrid>
     <zgrid>1</zgrid>
     <dx>200.0</dx>
     <dy>0.1</dy>
