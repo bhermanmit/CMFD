@@ -266,7 +266,7 @@ use timing, only: timer_start, timer_stop
     real(8)     :: num           ! numerator for eigenvalue update
     real(8)     :: den           ! denominator for eigenvalue update
     real(8)     :: one =  1.0    ! one
-    real(8)     :: dk =  0.0001  ! eigenvalue shift
+    real(8)     :: dk =   0.01   ! eigenvalue shift
     real(8)     :: ks            ! negative one
     integer     :: ierr          ! error flag
     KSP         :: krylov        ! krylov solver
@@ -316,11 +316,11 @@ use timing, only: timer_start, timer_stop
     do i = 1,10000
 
       ! shift eigenvalue
-      if (i <= 5) then
-        ks = -1.10 
-      else
-        ks = -1*(k_o + dk)
-      end if
+!     if (i <= 5) then
+        ks = -1.284946 
+!     else
+!       ks = -1*(k_o + dk)
+!     end if
 
       ! set up Wielandt shift
 !     if (i == 1) then
@@ -350,7 +350,7 @@ use timing, only: timer_start, timer_stop
 
       call KSPGetIterationNumber(krylov,maxit,ierr)
       call KSPGetResidualNorm(krylov,ktol,ierr)
-print *,maxit,ktol
+
       ! compute new source vector
       call MatMult(F,phi_n,S_n,ierr)
 
@@ -829,7 +829,7 @@ print *,maxit,ktol
 
     ! local variables
     real(8)     :: ktol = 1.e-6   ! tolerance on keff
-    real(8)     :: stol = 1.e-10   ! tolerance on source
+    real(8)     :: stol = 1.e-5   ! tolerance on source
     real(8)     :: kerr           ! error in keff
     real(8)     :: serr           ! error in source
     real(8)     :: one = -1.0     ! one

@@ -5,7 +5,7 @@ program = cmfd
 #===============================================================================
 
 export PETSC_DIR=/mnt/md0/Documents/Documents/PhD/petsc
-export PETSC_ARCH=arch-linux2-c-debug
+export PETSC_ARCH=arc-linux2-c-nodebug
 
 #===============================================================================
 # PETSc files
@@ -23,8 +23,8 @@ include OBJECTS
 #===============================================================================
 
 # F90FLAGS = -I${PETSC_DIR}/include/finclude -I../lib/gfortran -ffree#-form
-  F90FLAGS = -I../lib/gfortran -ffree-form -fbacktrace -g -fbounds-check
-# F90FLAGS = -I../lib/gfortran -ffree-form
+# F90FLAGS = -I../lib/gfortran -ffree-form -fbacktrace -g -fbounds-check
+  F90FLAGS = -I../lib/gfortran -ffree-form
   LDFLAGS = -L../lib/gfortran -lxmlparse
 
 #===============================================================================
