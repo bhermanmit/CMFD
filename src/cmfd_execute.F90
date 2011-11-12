@@ -330,9 +330,18 @@ use timing, only: timer_start, timer_stop
     print *,"number of eigenvalues requested:",nev
 
 
+<<<<<<< HEAD
 !   do i = 0,nconv-1
       i = 0
       call EPSGetEigenpair(eps,i,k_r,k_i,PETSC_NULL_OBJECT,PETSC_NULL_OBJECT,ierr)
+=======
+    ! end power iteration timer
+    call timer_stop(time_power)
+    print *,"Matrix building time (s):",time_mat%elapsed
+    print *,"Power iteration time (s):",time_power%elapsed
+    print *,"Power iteration time per iteration (s):",time_power%elapsed/i
+    print *,"Number of Power iterations:",i
+>>>>>>> master
 
       print *, "eigenvalue is:",1/k_r
 

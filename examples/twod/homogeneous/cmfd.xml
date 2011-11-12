@@ -3,21 +3,20 @@
 
 <!-- Definition of Geometry -->
   <geometry>
-    <nx>2</nx>
-    <ny>2</ny>
+    <nx>1</nx>
+    <ny>1</ny>
     <nz>1</nz>
     <ng>2</ng>
     <mesh>
-          8 1
-          1 1
+          1
     </mesh>
-    <xgrid>20 20</xgrid>
-    <ygrid>20 20</ygrid>
+    <xgrid>100</xgrid>
+    <ygrid>100</ygrid>
     <zgrid>1</zgrid>
-    <dx>20.0 20.0</dx>
-    <dy>20.0 20.0</dy>
+    <dx>100.0</dx>
+    <dy>100.0</dy>
     <dz>0.1</dz>
-    <bc> 1.0 0.0 1.0 0.0 1.0 1.0 </bc>
+    <bc> 0.0 0.0 0.0 0.0 1.0 1.0 </bc>
   </geometry>
 
 <!-- Defition of Materials -->

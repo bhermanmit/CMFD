@@ -13,7 +13,7 @@
     <xgrid>10</xgrid>
     <ygrid>1</ygrid>
     <zgrid>1</zgrid>
-    <dx>10.0</dx>
+    <dx>200.0</dx>
     <dy>0.1</dy>
     <dz>0.1</dz>
     <bc> 0.0 0.0 1.0 1.0 1.0 1.0 </bc>
