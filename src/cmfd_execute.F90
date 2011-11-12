@@ -280,76 +280,47 @@ use timing, only: timer_start, timer_stop
 
     ! set up M loss matrix
     call loss_matrix(M)
-!   call MatGetInfo(M,MAT_LOCAL,info,ierr)
-!   mall = info(MAT_INFO_MEMORY) 
-!   nza = info(MAT_INFO_NZ_ALLOCATED)
-!   nzu = info(MAT_INFO_NZ_USED)
-!   nzun = info(MAT_INFO_NZ_UNNEEDED)
 
     ! set up F production matrix
     call prod_matrix(F)
     call timer_stop(time_mat)
 
+    ! create EPS Object
+    call EPSCreate(PETSC_COMM_WORLD,eps,ierr)
+    call EPSSetProblemType(eps,EPS_GNHEP,ierr)
+    call EPSSetOperators(eps,F,M,ierr)  
+    call EPSSetFromOptions(eps,ierr)
+    call EPSSetWhichEigenpairs(eps,EPS_LARGEST_MAGNITUDE,ierr)
+
     ! begin timer for power iteration
     print *,"Beginning power iteration"
     call timer_start(time_power)
 
-    call EPSCreate(PETSC_COMM_WORLD,eps,ierr)
-    call EPSSetOperators(eps,M,F,ierr)
-    call EPSSetProblemType(eps,EPS_GNHEP,ierr)
-    call EPSSetFromOptions(eps,ierr)
-!   call EPSSetType(eps,EPSPOWER,ierr)
-    call EPSSetWhichEigenpairs(eps,EPS_SMALLEST_MAGNITUDE,ierr)
-
-!   call STCreate(PETSC_COMM_WORLD,st,ierr)
-!   call STSetType(st,STSHIFT,ierr)
-
-!   call KSPCreate(PETSC_COMM_WORLD,krylov,ierr)
-!   call KSPSetTolerances(krylov,ktol,PETSC_DEFAULT_DOUBLE_PRECISION, &
-!  & PETSC_DEFAULT_DOUBLE_PRECISION,PETSC_DEFAULT_INTEGER,ierr)
-!   call KSPSetType(krylov,KSPGMRES,ierr)
-!   call KSPSetInitialGuessNonzero(krylov,PETSC_TRUE,ierr)
-!   call KSPSetInitialGuessNonzero(krylov,PETSC_TRUE,ierr)
-!   call KSPGetPC(krylov,prec,ierr)
-!   call PCSetType(prec,PCILU,ierr)
-!   call KSPSetFromOptions(krylov,ierr)
-
-!   call STSetKSP(st,krylov,ierr)
-
+    ! solve system
     call EPSSolve(eps,ierr)
 
+    ! stop power itertion time
     call timer_stop(time_power)
 
+    ! extract run information 
     call EPSGetIterationNumber(eps,its,ierr)
-    print *, "number of iterations:",its
-
     call EPSGetConverged(eps,nconv,ierr)
-    print *,"number of converged is",nconv
-
     call EPSGetDimensions(eps,nev,PETSC_NULL_INTEGER,PETSC_NULL_INTEGER,ierr)
+
+    ! extract eigenvalue
+    i = 0
+    call EPSGetEigenpair(eps,i,k_r,k_i,PETSC_NULL_OBJECT,PETSC_NULL_OBJECT,ierr)
+
+    ! print output to screen 
+    print *, "number of iterations:",its
+    print *,"number of converged is",nconv
     print *,"number of eigenvalues requested:",nev
-
-
-<<<<<<< HEAD
-!   do i = 0,nconv-1
-      i = 0
-      call EPSGetEigenpair(eps,i,k_r,k_i,PETSC_NULL_OBJECT,PETSC_NULL_OBJECT,ierr)
-=======
-    ! end power iteration timer
-    call timer_stop(time_power)
     print *,"Matrix building time (s):",time_mat%elapsed
     print *,"Power iteration time (s):",time_power%elapsed
-    print *,"Power iteration time per iteration (s):",time_power%elapsed/i
-    print *,"Number of Power iterations:",i
->>>>>>> master
-
-      print *, "eigenvalue is:",1/k_r
-
-!   end do
+    print *, "eigenvalue is:",k_r
 
     ! finalize PETSc
     call SlepcFinalize(ierr)
-
 
   end subroutine cmfd_solver
 
