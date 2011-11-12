@@ -256,19 +256,19 @@ use timing, only: timer_start, timer_stop
 
     Mat         :: M       ! loss matrix
     Mat         :: F       ! production matrix
-    integer     :: ierr    ! error flag
+    Vec         :: phi_r   ! real part of eigenvector
+    Vec         :: phi_i   ! imaginary part of eigenvector
+    EPS         :: eps     ! slepc eigenvalue object
+    ST          :: st      ! slepc spetral trans object
+    KSP         :: ksp     ! linear solver object
+    PC          :: pc      ! preconditioner object
     PetscViewer :: viewer  ! viewer for answer
-    real(8) :: info(MAT_INFO_SIZE)
-    real(8) :: mall
-    real(8) :: nza,nzu,nzun
-    EPS     :: eps
-    real(8) :: k_r,k_i
-    Vec     :: phi_r,phi_i
-    PetscInt :: i,nconv,its,nev
-    ST       :: st
-    KSP      :: krylov
-    real(8)  :: ktol=1.e-7
-    PC       :: prec
+
+    integer     :: ierr    ! error flag
+    integer     :: i_eig=0 ! eigenvalue to extract
+    integer     :: its     ! number of iterations in eigenvalue solve
+    real(8)     :: k_r     ! real part of eigenvalue
+    real(8)     :: k_i     ! imaginary part of eigenvalue
 
     ! initialize PETSc
     call SlepcInitialize(PETSC_NULL_CHARACTER,ierr)
@@ -277,6 +277,7 @@ use timing, only: timer_start, timer_stop
     print *,"Initializing and building matrices"
     call timer_start(time_mat)
     call init_data(M,F)
+    call init_solver(eps,st,ksp,pc)
 
     ! set up M loss matrix
     call loss_matrix(M)
@@ -285,15 +286,11 @@ use timing, only: timer_start, timer_stop
     call prod_matrix(F)
     call timer_stop(time_mat)
 
-    ! create EPS Object
-    call EPSCreate(PETSC_COMM_WORLD,eps,ierr)
-    call EPSSetProblemType(eps,EPS_GNHEP,ierr)
+    ! set eigenvalue operators
     call EPSSetOperators(eps,F,M,ierr)  
-    call EPSSetFromOptions(eps,ierr)
-    call EPSSetWhichEigenpairs(eps,EPS_LARGEST_MAGNITUDE,ierr)
-
+ 
     ! begin timer for power iteration
-    print *,"Beginning power iteration"
+    print *,"Beginning Eigenvalue Calculation..."
     call timer_start(time_power)
 
     ! solve system
@@ -304,20 +301,14 @@ use timing, only: timer_start, timer_stop
 
     ! extract run information 
     call EPSGetIterationNumber(eps,its,ierr)
-    call EPSGetConverged(eps,nconv,ierr)
-    call EPSGetDimensions(eps,nev,PETSC_NULL_INTEGER,PETSC_NULL_INTEGER,ierr)
-
-    ! extract eigenvalue
-    i = 0
-    call EPSGetEigenpair(eps,i,k_r,k_i,PETSC_NULL_OBJECT,PETSC_NULL_OBJECT,ierr)
+    call EPSGetEigenpair(eps,i_eig,k_r,k_i,PETSC_NULL_OBJECT,PETSC_NULL_OBJECT,&
+   &                     ierr)
 
     ! print output to screen 
+    print *, "eigenvalue is:",k_r
     print *, "number of iterations:",its
-    print *,"number of converged is",nconv
-    print *,"number of eigenvalues requested:",nev
     print *,"Matrix building time (s):",time_mat%elapsed
     print *,"Power iteration time (s):",time_power%elapsed
-    print *, "eigenvalue is:",k_r
 
     ! finalize PETSc
     call SlepcFinalize(ierr)
@@ -378,6 +369,52 @@ use timing, only: timer_start, timer_stop
     call MatSetOption(F,MAT_USE_HASH_TABLE,PETSC_TRUE,ierr)
 
   end subroutine init_data 
+
+!===============================================================================
+! INIT_SOLVER setups the eigenvalue problem solvers
+!===============================================================================
+
+  subroutine init_solver(eps,st,ksp,pc) 
+
+#include <finclude/petsc.h90>
+#include <finclude/slepcsys.h>
+#include <finclude/slepceps.h>
+
+    integer     :: ierr    ! error flag
+    EPS         :: eps     ! slepc eigenvalue object
+    ST          :: st      ! slepc spetral trans object
+    KSP         :: ksp     ! linear solver object
+    PC          :: pc      ! preconditioner object
+    PetscViewer :: viewer  ! viewer for answer
+    character(LEN=20) :: epstype,sttype,ksptype,pctype
+
+    ! create EPS Object
+    call EPSCreate(PETSC_COMM_WORLD,eps,ierr)
+    call EPSSetProblemType(eps,EPS_GNHEP,ierr)
+    call EPSSetType(eps,EPSARNOLDI,ierr)
+    call EPSSetFromOptions(eps,ierr)
+    call EPSSetWhichEigenpairs(eps,EPS_LARGEST_MAGNITUDE,ierr)
+
+    ! get ST, KSP and PC objects
+    call EPSGetST(eps,st,ierr)
+    call STGetKSP(st,ksp,ierr)
+    call KSPGetPC(ksp,pc,ierr)
+
+    ! set precursor type
+    call PCSetType(pc,PCILU,ierr)
+    call PCFactorSetLevels(pc,4,ierr)
+
+    ! get all types and print
+    call EPSGetType(eps,epstype,ierr)
+    call STGetType(st,sttype,ierr)
+    call KSPGetType(ksp,ksptype,ierr)
+    call PCGetType(pc,pctype,ierr)
+    print *,'EPS TYPE IS:',epstype
+    print *,'ST TYPE IS:',sttype
+    print *,'KSP TYPE IS:',ksptype
+    print *,'PC TYPE IS:',pctype
+
+  end subroutine init_solver
 
 !===============================================================================
 ! LOSS_MATRIX creates the matrix representing loss of neutrons
