@@ -67,7 +67,6 @@ contains
 
           ! get next argument
           call GET_COMMAND_ARGUMENT(i+1,argv)
-          if (master) print*,trim(argv)
 
           ! set global var
           solver_type = trim(argv)
