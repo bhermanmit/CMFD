@@ -1,3 +1,11 @@
+!==============================================================================!
+! MODULE: cmfd_execute
+!
+!> @author Bryan Herman
+!>
+!> @brief Routine for running the eigenvalue solve
+!==============================================================================!
+
 module cmfd_execute
 
   use cmfd_data,         only: set_up_cmfd
