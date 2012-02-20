@@ -1,6 +1,7 @@
 global.o: cmfd_header.o
 global.o: timing.o
 
+main.o: constants.o
 main.o: global.o
 main.o: cmfd_execute.o
 main.o: timing.o

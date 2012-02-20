@@ -4,7 +4,7 @@ module constants
 
   ! Versioning numbers
   integer, parameter :: VERSION_MAJOR = 0
-  integer, parameter :: VERSION_MINOR = 3
+  integer, parameter :: VERSION_MINOR = 0
   integer, parameter :: VERSION_RELEASE = 2
 
   ! Physical constants
