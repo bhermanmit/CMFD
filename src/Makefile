@@ -1,11 +1,10 @@
 program = cmfd
 
 #===============================================================================
-# PETSc files
+# PETSc/SLEPc files
 #===============================================================================
 
-include ${PETSC_DIR}/conf/variables
-include ${PETSC_DIR}/conf/rules
+  include ${SLEPC_DIR}/conf/slepc_common
 
 #===============================================================================
 # Object Files
@@ -14,11 +13,25 @@ include ${PETSC_DIR}/conf/rules
 include OBJECTS
 
 #===============================================================================
+# User Options
+#===============================================================================
 
-# F90FLAGS = -I${PETSC_DIR}/include/finclude -I../lib/gfortran -ffree#-form
-# F90FLAGS = -I../lib/gfortran -ffree-form -fbacktrace -g -fbounds-check
-  F90FLAGS = -I../lib/gfortran -ffree-form
-  LDFLAGS = -L../lib/gfortran -lxmlparse
+DEBUG = no
+
+#==============================================================================
+# Set Options
+#==============================================================================
+
+F90FLAGS = -I../lib/intel -I${PETSC_DIR}/include -I${SLEPC_DIR}/include
+LDFLAGS  = -L../lib/intel -lxmlparse ${SLEPC_LIB}
+
+
+ifeq ($(DEBUG),yes)
+
+  F90FLAGS += -g -ftrapuv -fp-stack-check -check all -fpe0
+  LDFLAGS  += -g
+
+endif
 
 #===============================================================================
 # Targets
@@ -26,19 +39,19 @@ include OBJECTS
 
 all: $(program)
 $(program): $(objects) chkopts
-	${FLINKER} $(objects) -o $@ $(LDFLAGS) ${PETSC_SYS_LIB}
+	${FLINKER} $(objects) -o $@ $(LDFLAGS)
 
-clean:
-	@rm *.o *.mod cmfd
+clean::
+	@rm cmfd
 
 #===============================================================================
 # Rules
 #===============================================================================
 
-.SUFFIXES: .f90 .o
+.SUFFIXES: .F90 .o
 .PHONY: all clean neat
 
-%.o: %.f90
+%.o: %.F90
 	${FLINKER} $(F90FLAGS) -c $<
 
 #===============================================================================

@@ -14,4 +14,12 @@ module global
   type(Timer) :: time_mat    ! timer for mat building
   type(Timer) :: time_power  ! timer for power iteration
 
+  ! petsc error code
+  integer :: ierr
+
+  ! mpi parametesr
+  logical :: master = .false. ! am i master
+  integer :: rank             ! rank of processor
+  integer :: n_procs          ! number of processors
+
 end module global

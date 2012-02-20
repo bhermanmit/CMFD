@@ -29,7 +29,7 @@ module cmfd_header
     real(8), allocatable :: flux(:,:,:,:)
 
     ! coupling coefficients
-    real(8), allocatable :: dtilda(:,:,:,:,:)
+    real(8), allocatable :: dtilde(:,:,:,:,:)
     real(8), allocatable :: dhat(:,:,:,:,:)
 
     ! core albedo boundary conditions
@@ -50,8 +50,9 @@ module cmfd_header
     ! core map for xs association
     integer, allocatable :: coremap(:,:,:)
 
-    ! we may need to add the mesh object
-    ! add accumulation of important parameters
+    ! eigenvector/eigenvalue from cmfd run
+    real(8), allocatable :: phi(:)
+    real(8) :: keff = 0.0_8
 
   end type cmfd_obj
 

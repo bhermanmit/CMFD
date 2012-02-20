@@ -1,8 +1,8 @@
-module cmfd_utils
+module cmfd_input
 
-  use global
-
- implicit none
+  implicit none
+  private
+  public :: read_input 
 
 contains
 
@@ -12,6 +12,7 @@ contains
 
   subroutine read_input()
 
+    use global, only: cmfd
     use xml_data_cmfd_t
 
     ! local variables
@@ -70,8 +71,8 @@ contains
     allocate(cmfd%scattxs(ng,ng,nx,ny,nz))
     allocate(cmfd%nfissxs(ng,ng,nx,ny,nz))
     allocate(cmfd%diffcof(ng,nx,ny,nz))
-    allocate(cmfd%dtilda(6,ng,nx,ny,nz))
-    allocate(cmfd%hxyz(nx,ny,nz,3))
+    allocate(cmfd%dtilde(6,ng,nx,ny,nz))
+    allocate(cmfd%hxyz(3,nx,ny,nz))
     allocate(cmfd%coremap(nx,ny,nz))
 
     ! record indices in object
@@ -85,7 +86,7 @@ contains
 
     ! check core map dimensions
     if (size(geometry%mesh,1) /= nnx*nny*nnz) then
-    
+
       ! write out fatal error
       print *,'FATAL ===> core map dimensions not consistent'
       STOP
@@ -137,7 +138,7 @@ contains
                     ! set arbitrary totalxs
                     cmfd%totalxs(g,ix,jy,kz) = 0.5
 
-                  else 
+                  else
 
                     ! set tot xs since it is given
                     cmfd%totalxs(g,ix,jy,kz) = mat(matid)%totalxs(g)
@@ -170,7 +171,7 @@ contains
 
                     ! check if chi was entered
                     if (associated(mat(matid)%chi)) then
- 
+
                       ! set nfissxs transfer based on chi and nfissxs vector
                       cmfd%nfissxs(h,g,ix,jy,kz) = mat(matid)%chi(g)*mat(matid)%nfissxs(h)
 
@@ -189,21 +190,21 @@ contains
 
             end do ZZLOOP
 
-          end do GROUP 
+          end do GROUP
 
         end do XLOOP
 
       end do YLOOP
 
-    end do ZLOOP 
+    end do ZLOOP
 
     ! get dimensions
     if (associated(geometry%uniform)) then
 
       ! record uniform dimensions
-      cmfd%hxyz(:,:,:,1) = geometry%uniform(1)
-      cmfd%hxyz(:,:,:,2) = geometry%uniform(2)
-      cmfd%hxyz(:,:,:,3) = geometry%uniform(3)
+      cmfd%hxyz(1,:,:,:) = geometry%uniform(1)
+      cmfd%hxyz(2,:,:,:) = geometry%uniform(2)
+      cmfd%hxyz(3,:,:,:) = geometry%uniform(3)
 
     else if (associated(geometry%dx)) then
 
@@ -227,9 +228,9 @@ contains
                   kz = sum(zgrid(1:k)) - zgrid(k) + kk
 
                   ! record dimension
-                  cmfd%hxyz(ix,jy,kz,1) = geometry%dx(i)/xgrid(i)
-                  cmfd%hxyz(ix,jy,kz,2) = geometry%dy(j)/ygrid(j)
-                  cmfd%hxyz(ix,jy,kz,3) = geometry%dz(k)/zgrid(k)
+                  cmfd%hxyz(1,ix,jy,kz) = geometry%dx(i)/xgrid(i)
+                  cmfd%hxyz(2,ix,jy,kz) = geometry%dy(j)/ygrid(j)
+                  cmfd%hxyz(3,ix,jy,kz) = geometry%dz(k)/zgrid(k)
 
                 end do XXLOOP2
 
@@ -271,11 +272,11 @@ contains
 !   print *, 'BOUNDARY CONDITIONS:'
 !   print *,cmfd%albedo
 !   print *, 'CORE CELL DIMENSIONS X:'
-!   print *,cmfd%hxyz(:,:,:,1)
+!   print *,cmfd%hxyz(1,:,:,:)
 !   print *, 'CORE CELL DIMENSIONS Y:'
-!   print *,cmfd%hxyz(:,:,:,2)
+!   print *,cmfd%hxyz(2,:,:,:)
 !   print *, 'CORE CELL DIMENSIONS Z:'
-!   print *,cmfd%hxyz(:,:,:,3)
+!   print *,cmfd%hxyz(3,:,:,:)
 
   end subroutine read_input
 
@@ -306,4 +307,4 @@ contains
 
   end function get_matrix_idx
 
-end module cmfd_utils
+end module cmfd_input
