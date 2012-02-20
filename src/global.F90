@@ -22,4 +22,7 @@ module global
   integer :: rank             ! rank of processor
   integer :: n_procs          ! number of processors
 
+  ! solver type
+  character(len=25) :: solver_type
+
 end module global

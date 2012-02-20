@@ -10,6 +10,9 @@ program main
 #include <finclude/slepcsys.h>
 #include <finclude/slepceps.h>
 
+  ! initialize
+  call initialize()
+
   ! begin total timer
   call timer_start(time_total)
 
@@ -19,6 +22,9 @@ program main
   ! stop timer
   call timer_stop(time_total)
 
+  ! finalize run
+  call finalize()
+
 contains
 
 !==============================================================================
@@ -26,6 +32,10 @@ contains
 !==============================================================================
 
   subroutine initialize()
+
+    integer :: i                ! loop counter
+    integer :: argc             ! number of command line arguments
+    character(len=25) :: argv   ! a command line argument
 
     ! initialize slepc/petsc
     call SlepcInitialize(PETSC_NULL_CHARACTER,ierr)
@@ -39,6 +49,35 @@ contains
 
     ! print out number of procs
     if (master) print *,'Number of Processors:',n_procs
+
+    ! get number of command line arguments
+    argc = COMMAND_ARGUMENT_COUNT()
+
+    ! begin loop around command line args
+    do i = 1,argc
+
+      ! get that argument
+      call GET_COMMAND_ARGUMENT(i,argv)
+
+      ! begin case structure
+      select case(trim(argv))
+
+        ! solver
+        case('--solver_type')
+
+          ! get next argument
+          call GET_COMMAND_ARGUMENT(i+1,argv)
+          if (master) print*,trim(argv)
+
+          ! set global var
+          solver_type = trim(argv)
+
+        ! do nothing here
+        case DEFAULT
+
+      end select
+
+    end do
 
   end subroutine initialize
 
