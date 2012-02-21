@@ -1,5 +1,66 @@
 !==============================================================================!
 !> @mainpage CMFD: Coarse Mesh Finite Difference Diffusion
+!>
+!> @section Overview
+!>
+!> This program solve the neutron diffusion equation in three-dimensions and
+!> arbitrary number of energy groups. CMFD utilizing a number of external
+!> packages which must be downloaded and configured before compiling. A list
+!> of them is as follows:
+!>  - PETSc
+!>  - MPICH2
+!>  - Fortran BLAS/LAPACK
+!>  - HYPRE
+!>  - SLEPc
+!>
+!> The packages PETSc/MPICH2/BLAS/LAPACK/HYPRE can be downloaded from 
+!>  http://www.mcs.anl.gov/petsc/
+!>
+!> The package SLEPc can be downloaded from http://www.grycap.upv.es/slepc/
+!>
+!> Successful configuration has been completed with Intel v.12.0 compiler.
+!> GNU has not been working when configuring HYPRE
+!>
+!> @section Building PETSc
+!>
+!> PETSc has been successfully configured and built with the following command:
+!>
+!> @verbatim
+!>   ./configure --with-cc=icc --with-fc=ifort --download-mpich=1 
+!> --download-f-blas-lapack=1 --download-hypre=1 --with-debugging=<0 or 1>
+!> @endverbatim
+!>
+!> @section Compiling
+!> 
+!> Before compiling, the following environmental variables need to be set:
+!>  - PETSC_DIR => path to PETSc build directory
+!>  - PETSC_ARCH => name of PETSc build to use (located in petsc build dir)
+!>  - SLEPC_DIR => path to SLEPc build directory
+!>
+!> Compiling is as easy as running the Makefile with:
+!>
+!> @verbatim
+!>   make cmfd
+!> @endverbatim
+!>
+!> @section Running
+!>
+!> To run CMFD code, execute the following:
+!>
+!> @verbatim
+!>   $PETSC_DIR/$PETSC_ARCH/bin/mpiexec -np <nprocs> ~/path-to-cmfd/cmfd [options]
+!> @endverbatim
+!>
+!> <nprocs> is the number of processors to run with MPI
+!>
+!> Both SLEPc/PETSc and CMFD command line options can be set for [options].
+!> Please refer to SLEPC/PETSC manuals for package specific command line options or
+!> just type -help.  CMFD specific command line options are as follows:
+!>   - --solver_type = <solver> where <solver> is <b>power</b>, <b>slepc</b>, <b>snes</b>
+!>     - <b>power</b> uses the manual power iteration routine
+!>     - <b>slepc</b> uses slepc to perform the eigenvalue calculation
+!>     - <b>snes</b> uses JFNK nonlinear method to solve eigenvalue calculation
+!>
 !==============================================================================!
 
 program main
