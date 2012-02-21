@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
-<title>CMFD: Main Page</title>
+<title>CMFD: CMFD: Coarse Mesh Finite Difference Diffusion</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <link href="doxygen.css" rel="stylesheet" type="text/css"/>
 </head>
@@ -32,11 +32,56 @@
 </div>
 <div class="header">
   <div class="headertitle">
-<h1>CMFD Documentation</h1>  </div>
+<h1>CMFD: Coarse Mesh Finite Difference Diffusion </h1>  </div>
 </div>
 <div class="contents">
-<div class="textblock"></div></div>
-<hr class="footer"/><address class="footer"><small>Generated on Mon Feb 20 2012 19:49:35 for CMFD by&#160;
+<div class="textblock"><h2><a class="anchor" id="Overview"></a>
+Overview</h2>
+<p>This program solve the neutron diffusion equation in three-dimensions and arbitrary number of energy groups. CMFD utilizing a number of external packages which must be downloaded and configured before compiling. A list of them is as follows:</p>
+<ul>
+<li>PETSc</li>
+<li>MPICH2</li>
+<li>Fortran BLAS/LAPACK</li>
+<li>HYPRE</li>
+<li>SLEPc</li>
+</ul>
+<p>The packages PETSc/MPICH2/BLAS/LAPACK/HYPRE can be downloaded from <a href="http://www.mcs.anl.gov/petsc/">http://www.mcs.anl.gov/petsc/</a></p>
+<p>The package SLEPc can be downloaded from <a href="http://www.grycap.upv.es/slepc/">http://www.grycap.upv.es/slepc/</a></p>
+<p>Successful configuration has been completed with Intel v.12.0 compiler. GNU has not been working when configuring HYPRE</p>
+<h2><a class="anchor" id="Building"></a>
+PETSc</h2>
+<p>PETSc has been successfully configured and built with the following command:</p>
+<div class="fragment"><pre class="fragment">
+   ./configure --with-cc=icc --with-fc=ifort --download-mpich=1 
+ --download-f-blas-lapack=1 --download-hypre=1 --with-debugging=&lt;0 or 1&gt;
+ </pre></div><h2><a class="anchor" id="Compiling"></a>
+Compiling</h2>
+<p>Before compiling, the following environmental variables need to be set:</p>
+<ul>
+<li>PETSC_DIR =&gt; path to PETSc build directory</li>
+<li>PETSC_ARCH =&gt; name of PETSc build to use (located in petsc build dir)</li>
+<li>SLEPC_DIR =&gt; path to SLEPc build directory</li>
+</ul>
+<p>Compiling is as easy as running the Makefile with:</p>
+<div class="fragment"><pre class="fragment">
+   make cmfd
+ </pre></div><h2><a class="anchor" id="Running"></a>
+Running</h2>
+<p>To run CMFD code, execute the following:</p>
+<div class="fragment"><pre class="fragment">
+   $PETSC_DIR/$PETSC_ARCH/bin/mpiexec -np &lt;nprocs&gt; ~/path-to-cmfd/cmfd [options]
+ </pre></div><p>&lt;nprocs&gt; is the number of processors to run with MPI</p>
+<p>Both SLEPc/PETSc and CMFD command line options can be set for [options]. Please refer to SLEPC/PETSC manuals for package specific command line options or just type -help. CMFD specific command line options are as follows:</p>
+<ul>
+<li>--solver_type = &lt;solver&gt; where &lt;solver&gt; is <b>power</b>, <b>slepc</b>, <b>snes</b><ul>
+<li><b>power</b> uses the manual power iteration routine</li>
+<li><b>slepc</b> uses slepc to perform the eigenvalue calculation</li>
+<li><b>snes</b> uses JFNK nonlinear method to solve eigenvalue calculation </li>
+</ul>
+</li>
+</ul>
+</div></div>
+<hr class="footer"/><address class="footer"><small>Generated on Mon Feb 20 2012 20:20:05 for CMFD by&#160;
 <a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.7.3 </small></address>
 </body>
