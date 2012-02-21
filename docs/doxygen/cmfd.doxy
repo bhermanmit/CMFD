@@ -32,7 +32,7 @@ PROJECT_NUMBER =
 # Thus, when I set the output directory as follows, html and latex
 # output ends up in monte/doc/html etc., which is natural.
 
-OUTPUT_DIRECTORY = /home/bherman/PhD/CMFD/docs/doxygen/
+OUTPUT_DIRECTORY = /home/bherman/Documents/PhD/CMFD/docs/doxygen/
 
 # If the CREATE_SUBDIRS tag is set to YES, then doxygen will create
 # 4096 sub-directories (in 2 levels) under the output directory of each output
@@ -427,7 +427,7 @@ WARN_LOGFILE =
 # directories like "/usr/src/myproject". Separate the files or directories
 # with spaces.
 
-INPUT = /home/bherman/PhD/CMFD/src
+INPUT = /home/bherman/Documents/PhD/CMFD/src
 
 # If the value of the INPUT tag contains directories, you can use the
 # FILE_PATTERNS tag to specify one or more wildcard pattern (like *.cpp

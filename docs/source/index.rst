@@ -16,6 +16,8 @@ For more information on CMFD, feel free to contact `Bryan Herman`_.
 .. _Computational Reactor Physics Group: http://crpg.mit.edu
 .. _Bryan Herman: mailto:bherman@mit.edu
 
+Doxygen documentation (html only) of the source code can be found :download:`here <../doxygen/html/index.html>`
+
 --------
 Contents
 --------
