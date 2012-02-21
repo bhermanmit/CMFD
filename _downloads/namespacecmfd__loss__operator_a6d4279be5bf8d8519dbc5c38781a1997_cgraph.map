@@ -1,0 +1,5 @@
+<map id="G" name="G">
+<area shape="rect" id="node3" href="$namespacecmfd__loss__operator.html#a6bebdc71b11d1cbae1ef14bb681d2428" title="cmfd_loss_operator::preallocate_loss_matrix" alt="" coords="289,32,569,61"/>
+<area shape="rect" id="node5" href="$namespacecmfd__loss__operator.html#a610d84fe8cc80662c57a7160fcafb4b8" title="cmfd_loss_operator::indices_to_matrix" alt="" coords="620,5,865,35"/>
+<area shape="rect" id="node7" href="$namespacecmfd__loss__operator.html#ab71b5a7598e909ae7a672a0e125fcaa0" title="cmfd_loss_operator::matrix_to_indices" alt="" coords="620,59,865,88"/>
+</map>

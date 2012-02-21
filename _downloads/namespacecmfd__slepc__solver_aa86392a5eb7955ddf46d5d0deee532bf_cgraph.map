@@ -1,0 +1,14 @@
+<map id="G" name="G">
+<area shape="rect" id="node3" href="$namespacecmfd__slepc__solver.html#aa44fcb0e3c2e1506abd3644f68fe63d0" title="cmfd_slepc_solver::extract_results" alt="" coords="313,5,537,35"/>
+<area shape="rect" id="node5" href="$namespacecmfd__slepc__solver.html#afcbc625cfca60f28f97366098628814d" title="cmfd_slepc_solver::finalize" alt="" coords="336,59,515,88"/>
+<area shape="rect" id="node7" href="$namespacecmfd__slepc__solver.html#a5a80e096eef5a75ae1f4a4e656e31375" title="cmfd_slepc_solver::init_data" alt="" coords="332,112,519,141"/>
+<area shape="rect" id="node25" href="$namespacecmfd__slepc__solver.html#ae0db671a69c0fcee17de72e081ea0fb7" title="cmfd_slepc_solver::init_solver" alt="" coords="327,165,524,195"/>
+<area shape="rect" id="node9" href="$namespacecmfd__prod__operator.html#a4d3f9798f6553896c732ce7003f16621" title="cmfd_prod_operator::init_F_operator" alt="" coords="589,85,819,115"/>
+<area shape="rect" id="node17" href="$namespacecmfd__loss__operator.html#a6d4279be5bf8d8519dbc5c38781a1997" title="cmfd_loss_operator::init_M_operator" alt="" coords="588,139,820,168"/>
+<area shape="rect" id="node11" href="$namespacecmfd__prod__operator.html#ae74dae4cf332d3d8fb0bfedced8e33c5" title="cmfd_prod_operator::preallocate_prod_matrix" alt="" coords="869,85,1152,115"/>
+<area shape="rect" id="node13" href="$namespacecmfd__prod__operator.html#ac2983fe53c57b45472a28c5018e318b4" title="cmfd_prod_operator::indices_to_matrix" alt="" coords="1201,32,1447,61"/>
+<area shape="rect" id="node15" href="$namespacecmfd__prod__operator.html#a7693350e6550b480f31618c992ba4c74" title="cmfd_prod_operator::matrix_to_indices" alt="" coords="1201,85,1447,115"/>
+<area shape="rect" id="node19" href="$namespacecmfd__loss__operator.html#a6bebdc71b11d1cbae1ef14bb681d2428" title="cmfd_loss_operator::preallocate_loss_matrix" alt="" coords="871,139,1151,168"/>
+<area shape="rect" id="node21" href="$namespacecmfd__loss__operator.html#a610d84fe8cc80662c57a7160fcafb4b8" title="cmfd_loss_operator::indices_to_matrix" alt="" coords="1201,139,1447,168"/>
+<area shape="rect" id="node23" href="$namespacecmfd__loss__operator.html#ab71b5a7598e909ae7a672a0e125fcaa0" title="cmfd_loss_operator::matrix_to_indices" alt="" coords="1201,192,1447,221"/>
+</map>

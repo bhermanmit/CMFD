@@ -1,0 +1,356 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Benchmarks using CMFD &mdash; CMFD Documentation</title>
+    
+    <link rel="stylesheet" href="../_static/haiku.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/print.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/theme_extras.js"></script>
+    <link rel="top" title="CMFD Documentation" href="../index.html" />
+    <link rel="up" title="User’s Guide" href="index.html" />
+    <link rel="next" title="Development Team" href="../developers.html" />
+    <link rel="prev" title="CMFD Input File – cmfd.xml" href="input.html" /> 
+  </head>
+  <body>
+      <div class="header">
+        <a href="../index.html">
+          <img class="logo" src="../_static/CMFDlogo.png" alt="Logo"/>
+        </a>
+      </div>
+      <div class="topnav">
+      
+        <p>
+        «&#160;&#160;<a href="input.html">CMFD Input File &#8211; cmfd.xml</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="../index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="../developers.html">Development Team</a>&#160;&#160;»
+        </p>
+
+      </div>
+      <div class="content">
+        
+        
+  <div class="section" id="benchmarks-using-cmfd">
+<span id="uersguide-bencmarks"></span><h1>Benchmarks using CMFD<a class="headerlink" href="#benchmarks-using-cmfd" title="Permalink to this headline">¶</a></h1>
+<p>Explain purpose of doing benchmarks</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>Specifications and descriptions of the benchmarks were taken directly out of
+the following two locations:</p>
+<ul class="last simple">
+<li>MULLER, E.Z. and Weiss Z.J., &#8220;Benchmarking with the Multigroup Diffusion
+High-Order Response Matrix Method,&#8221; Annals of Nuclear Energy, Vol. 18,
+No. 9, pp. 534-544, 1991.</li>
+<li>SMITH, K.S. &#8220;TITLE OF MASTERS&#8221;</li>
+</ul>
+</div>
+<div class="section" id="biblis">
+<h2>BIBLIS<a class="headerlink" href="#biblis" title="Permalink to this headline">¶</a></h2>
+<p>The 2-D BIBLIS problem is a realistic and highly nonseparable 2-group problem
+representative of an actual operating pressurized water reactor (PWR), with a
+checker-board-loaded core.   Homogenized fuel assemblies with widths of 23.1226
+cm and seven diffrence compositions are present in the core which is surrouded by a 23.1226 cm homogenized reflector (i.e. the baffle is homogenized with the water reflector) with vacuum external boundary conditions.</p>
+<div class="admonition important">
+<p class="first admonition-title">Important</p>
+<p>The following changes were made from the original benchmark, but should not
+affect the answers significantly</p>
+<ul class="last simple">
+<li>reflecting material place outside of the core so that the computational
+domain is a rectangle. Reflector boundary not treated explicitly as in
+orginal specficiations. See references for true core layout.</li>
+<li>since the reflecting region is large, zero-incoming partial current
+boundary conditions were used instead of vacuum</li>
+</ul>
+</div>
+<p>Diffusion Parameters:</p>
+<blockquote>
+<div><table border="1" class="docutils">
+<colgroup>
+<col width="8%" />
+<col width="10%" />
+<col width="12%" />
+<col width="18%" />
+<col width="18%" />
+<col width="18%" />
+<col width="16%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Zone</th>
+<th class="head">Group</th>
+<th class="head"><img class="math" src="../_images/math/0c22d33b2ff132cbfe2f75894c5656ac7798dece.png" alt="D_{g}"/></th>
+<th class="head"><img class="math" src="../_images/math/0997b8a9d7dbc5b94e2d974218661c06be819ece.png" alt="\Sigma_{ag}"/></th>
+<th class="head"><img class="math" src="../_images/math/d3aa029c47904c5d6f187e7c0127fb9b2636c845.png" alt="\Sigma_{rg}"/></th>
+<th class="head"><img class="math" src="../_images/math/6755d36013ca0dc44850accdd3c939fb044b01cb.png" alt="\nu\Sigma_{fg}"/></th>
+<th class="head"><img class="math" src="../_images/math/0f6383bdf0788f645774471a63aacfb1976de52a.png" alt="\Sigma_{sg}^{1\rightarrow g}"/></th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>1</td>
+<td>1</td>
+<td>1.4360</td>
+<td>0.0095042</td>
+<td>0.0272582</td>
+<td>0.0058708</td>
+<td>0.0</td>
+</tr>
+<tr class="row-odd"><td></td>
+<td>2</td>
+<td>0.3635</td>
+<td>0.0750580</td>
+<td>0.0750580</td>
+<td>0.0960670</td>
+<td>0.017754</td>
+</tr>
+<tr class="row-even"><td></td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-odd"><td>2</td>
+<td>1</td>
+<td>1.4366</td>
+<td>0.0096785</td>
+<td>0.0272995</td>
+<td>0.0061908</td>
+<td>0.0</td>
+</tr>
+<tr class="row-even"><td></td>
+<td>2</td>
+<td>0.3636</td>
+<td>0.0784360</td>
+<td>0.0784360</td>
+<td>0.1035800</td>
+<td>0.017621</td>
+</tr>
+<tr class="row-odd"><td></td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-even"><td>3</td>
+<td>1</td>
+<td>1.3200</td>
+<td>0.0026562</td>
+<td>0.0257622</td>
+<td>0.0</td>
+<td>0.0</td>
+</tr>
+<tr class="row-odd"><td></td>
+<td>2</td>
+<td>0.2772</td>
+<td>0.0715960</td>
+<td>0.0715960</td>
+<td>0.0</td>
+<td>0.023106</td>
+</tr>
+<tr class="row-even"><td></td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-odd"><td>4</td>
+<td>1</td>
+<td>1.4389</td>
+<td>0.0103630</td>
+<td>0.0274640</td>
+<td>0.0074527</td>
+<td>0.0</td>
+</tr>
+<tr class="row-even"><td></td>
+<td>2</td>
+<td>0.3638</td>
+<td>0.0914080</td>
+<td>0.0914080</td>
+<td>0.1323600</td>
+<td>0.017101</td>
+</tr>
+<tr class="row-odd"><td></td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-even"><td>5</td>
+<td>1</td>
+<td>1.4381</td>
+<td>0.0100030</td>
+<td>0.0272930</td>
+<td>0.0061908</td>
+<td>0.0</td>
+</tr>
+<tr class="row-odd"><td></td>
+<td>2</td>
+<td>0.3665</td>
+<td>0.0848280</td>
+<td>0.0848280</td>
+<td>0.1035800</td>
+<td>0.017290</td>
+</tr>
+<tr class="row-even"><td></td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-odd"><td>6</td>
+<td>1</td>
+<td>1.4385</td>
+<td>0.0101320</td>
+<td>0.0273240</td>
+<td>0.0064285</td>
+<td>0.0</td>
+</tr>
+<tr class="row-even"><td></td>
+<td>2</td>
+<td>0.3665</td>
+<td>0.0873140</td>
+<td>0.0873140</td>
+<td>0.1091100</td>
+<td>0.017192</td>
+</tr>
+<tr class="row-odd"><td></td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-even"><td>7</td>
+<td>1</td>
+<td>1.4389</td>
+<td>0.0101650</td>
+<td>0.0272900</td>
+<td>0.0061908</td>
+<td>0.0</td>
+</tr>
+<tr class="row-odd"><td></td>
+<td>2</td>
+<td>0.3679</td>
+<td>0.0880240</td>
+<td>0.0880240</td>
+<td>0.1035800</td>
+<td>0.017125</td>
+</tr>
+<tr class="row-even"><td></td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-odd"><td>8</td>
+<td>1</td>
+<td>1.4393</td>
+<td>0.0102940</td>
+<td>0.0273210</td>
+<td>0.0064285</td>
+<td>0.0</td>
+</tr>
+<tr class="row-even"><td></td>
+<td>2</td>
+<td>0.3680</td>
+<td>0.0905100</td>
+<td>0.0905100</td>
+<td>0.1091100</td>
+<td>0.017027</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<div><p><img class="math" src="../_images/math/5a41594c6238acadb0d7f80db5b8745f0e1cc14c.png" alt="\chi_{1}=1.0\quad\chi_{2}=0.0"/></p>
+<p><img class="math" src="../_images/math/a85ce3eba5c9e7b193b65ff1cb07d251ad9e8b81.png" alt="\Sigma_{rg} = \Sigma_{ag}+ \Sigma_{sg}^{1\rightarrow g}"/></p>
+</div></blockquote>
+</div></blockquote>
+<p>Core map:</p>
+<img alt="../_images/BIBLIS_map.png" class="align-left" src="../_images/BIBLIS_map.png" />
+<p>Benchmark Results:</p>
+<blockquote>
+<div><table border="1" class="docutils">
+<colgroup>
+<col width="47%" />
+<col width="24%" />
+<col width="29%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Case</th>
+<th class="head">k-eff</th>
+<th class="head"><img class="math" src="../_images/math/83db992a1bf9c6721470cff232c7842530571adb.png" alt="\Delta k"/> (pcm)</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>Reference</td>
+<td>1.025100</td>
+<td>N/A</td>
+</tr>
+<tr class="row-odd"><td>CMFD (1 cm mesh)</td>
+<td>1.025114</td>
+<td>1.4</td>
+</tr>
+</tbody>
+</table>
+<p><img class="math" src="../_images/math/5d2bd00699c8c8eefa1824e65b03dafa82ac911c.png" alt="\Delta k = \left\vert k_{ref} - k_{CMFD} \right\vert \cdot 10^{5}"/></p>
+</div></blockquote>
+<p>Group 1 Relative Flux:</p>
+<img alt="../_images/BIBLIS_flux1.png" class="align-left" src="../_images/BIBLIS_flux1.png" />
+<p>Group 2 Relative Flux:</p>
+<img alt="../_images/BIBLIS_flux2.png" class="align-left" src="../_images/BIBLIS_flux2.png" />
+</div>
+</div>
+
+
+      </div>
+      <div class="bottomnav">
+      
+        <p>
+        «&#160;&#160;<a href="input.html">CMFD Input File &#8211; cmfd.xml</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="../index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="../developers.html">Development Team</a>&#160;&#160;»
+        </p>
+
+      </div>
+
+    <div class="footer">
+        &copy; Copyright 2011, Massachusetts Institute of Technology.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>
