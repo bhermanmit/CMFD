@@ -34,3 +34,7 @@ tools
 
 # Inkscape source files
 *.svg
+
+# ignore doxygen folder and gh-pages
+doxygen
+gh-pages
