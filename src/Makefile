@@ -22,8 +22,8 @@ DEBUG = no
 # Set Options
 #==============================================================================
 
-F90FLAGS = -I../lib/intel -I${PETSC_DIR}/include -I${SLEPC_DIR}/include
-LDFLAGS  = -L../lib/intel -lxmlparse ${SLEPC_LIB}
+F90FLAGS = -I../lib/gfortran -I${PETSC_DIR}/include -I${SLEPC_DIR}/include
+LDFLAGS  = -L../lib/gfortran -lxmlparse ${SLEPC_LIB}
 
 
 ifeq ($(DEBUG),yes)

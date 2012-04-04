@@ -123,7 +123,7 @@ contains
 
     ! set preconditioner
     call KSPGetPC(ksp,pc,ierr)
-    call PCSetType(pc,PCHYPRE,ierr)
+    call PCSetType(pc,PCILU,ierr)
     call PCSetFromOptions(pc,ierr)
     call KSPSetFromOptions(ksp,ierr)
 
@@ -152,11 +152,11 @@ contains
     call PCGetType(pc,pctype,ierr)
 
     ! display information to user
-!   write(*,'(/,A)') 'SNES SOLVER OPTIONS:'
-!   write(*,*) '---------------------'
-!   write(*,*) 'SNES TYPE IS: ',snestype
-!   write(*,*) 'KSP TYPE IS: ',ksptype
-!   write(*,*) 'PC TYPE IS: ',pctype
+    write(*,'(/,A)') 'SNES SOLVER OPTIONS:'
+    write(*,*) '---------------------'
+    write(*,*) 'SNES TYPE IS: ',snestype
+    write(*,*) 'KSP TYPE IS: ',ksptype
+    write(*,*) 'PC TYPE IS: ',pctype
 
   end subroutine init_solver
 
@@ -221,7 +221,7 @@ PetscViewer :: viewer
     call VecDot(phi,phi,reslamb,ierr)
 
     ! map to ptr
-    if (rank == n_procs) rptr(size(rptr)) = 0.5_8 - 0.5_8*reslamb
+    if (rank == n_procs - 1) rptr(size(rptr)) = 0.5_8 - 0.5_8*reslamb
 
     ! reset arrays that are not used
     call VecResetArray(phi,ierr)

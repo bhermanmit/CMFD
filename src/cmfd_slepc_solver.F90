@@ -93,6 +93,7 @@ contains
  
     ! get ST, KSP and PC objects
     call EPSGetST(eps,st,ierr)
+    call STSetType(st,STSHIFT,ierr)
     call STGetKSP(st,ksp,ierr)
     call KSPGetPC(ksp,pc,ierr)
 
@@ -100,7 +101,7 @@ contains
     call KSPSetType(ksp,KSPGMRES,ierr)
 
     ! set precursor type
-    call PCSetType(pc,PCBJACOBI,ierr)
+    call PCSetType(pc,PCILU,ierr)
     call PCSetFromOptions(pc,ierr)
 
     ! get all types and print
@@ -110,12 +111,12 @@ contains
     call PCGetType(pc,pctype,ierr)
 
     ! display information to user
-!   write(*,'(/,A)') 'SLEPC SOLVER OPTIONS:'
-!   write(*,*) '---------------------'
-!   write(*,*) 'EPS TYPE IS: ',epstype
-!   write(*,*) 'ST TYPE IS: ',sttype
-!   write(*,*) 'KSP TYPE IS: ',ksptype
-!   write(*,*) 'PC TYPE IS: ',pctype
+    write(*,'(/,A)') 'SLEPC SOLVER OPTIONS:'
+    write(*,*) '---------------------'
+    write(*,*) 'EPS TYPE IS: ',epstype
+    write(*,*) 'ST TYPE IS: ',sttype
+    write(*,*) 'KSP TYPE IS: ',ksptype
+    write(*,*) 'PC TYPE IS: ',pctype
 
   end subroutine init_solver
 

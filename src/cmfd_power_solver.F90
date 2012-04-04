@@ -113,7 +113,7 @@ contains
     real(8)     :: solvertol ! krylov tolerance
 
     ! set tolerance
-    solvertol = 1.0e-7_8
+    solvertol = 1.0e-10_8
 
     ! set up krylov solver
     call KSPCreate(PETSC_COMM_SELF,krylov,ierr)
@@ -188,8 +188,8 @@ contains
 
   subroutine convergence()
 
-    real(8)     :: ktol = 1.e-6_8 ! tolerance on keff
-    real(8)     :: stol = 1.e-5_8 ! tolerance on source
+    real(8)     :: ktol = 1.e-8_8 ! tolerance on keff
+    real(8)     :: stol = 1.e-6_8 ! tolerance on source
     real(8)     :: kerr           ! error in keff
     real(8)     :: serr           ! error in source
     real(8)     :: one = -1.0_8   ! one
@@ -215,7 +215,7 @@ contains
     if(kerr < ktol .and. serr < stol) iconv = .TRUE.
 
     ! print out to user (TODO: make formatted)
-!   print *,k_n,kerr,serr
+    print *,k_n,kerr,serr
 
   end subroutine convergence
 
